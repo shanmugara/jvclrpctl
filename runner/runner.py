@@ -88,6 +88,9 @@ class JVC_LRP_Runner:
             # Get current HDR mode from Lumagen
             print("\nChecking Lumagen HDR status...")
             current_hdr_mode = self.get_lumagen_hdr_mode()
+
+            print(f"Current Lumagen HDR mode: {current_hdr_mode.name}")
+            print(f"Last known Lumagen HDR mode: {self.lumagen_hdr_mode.name}")
             
             if current_hdr_mode == self.lumagen_hdr_mode:
                 print("✓ Lumagen HDR status has not changed since last check.")
