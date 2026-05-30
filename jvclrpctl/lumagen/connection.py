@@ -92,6 +92,11 @@ class LumagenRadiance:
             return True
             
         except (serial.SerialException, OSError) as e:
+            if hasattr(e, 'errno') and e.errno == 2:  # FileNotFoundError
+                print(f"✗ Port {self.port} not found. Check the port name and connection.")
+                return False          
+            if hasattr(e, 'errno') and e.errno == 13:  # PermissionError
+                raise LumagenConnectionError(f"Permission denied for port {self.port}. Try running with elevated permissions or check port access.")
             raise LumagenConnectionError(f"Failed to connect to {self.port}: {e}")
     
     def disconnect(self):
