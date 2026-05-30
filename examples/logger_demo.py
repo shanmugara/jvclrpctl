@@ -9,7 +9,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from jvclrpctl.logger import get_logger, info, warn, error, raw, set_logger_enabled
+from jvclrpctl.logger import get_logger, info, debug, warn, error, raw, set_logger_enabled, set_log_level, LogLevel
 
 def main():
     """Demonstrate logger functionality"""
@@ -29,6 +29,12 @@ def main():
     info("Picture mode set to USER3")
     raw("")
     
+    # Debug messages (yellow with [DEBUG] prefix)
+    # Note: Debug messages won't show by default (level is INFO)
+    logger.debug("This is a debug message (won't show yet)")
+    debug("Sending command: 0x21 0x89 0x01 0x50 0x57 0x30 0x0A (won't show yet)")
+    raw("")
+    
     # Warning messages (yellow with [WARN] prefix)
     logger.warn("This is a warning message")
     warn("HDR status unchanged")
@@ -41,11 +47,44 @@ def main():
     error("Failed to set picture mode")
     raw("")
     
-    # Raw messages (no prefix, no color)
-    raw("Raw messages are useful for:")
-    raw("  - Headers and separators")
-    raw("  - Tables and formatted output")
-    raw("  - Plain informational text")
+    # Demonstrate log levels
+    raw("=" * 60)
+    raw("Log Level Control Demo")
+    raw("=" * 60)
+    raw("")
+    
+    raw("Default level is INFO - debug messages are hidden")
+    info("Info message - visible")
+    debug("Debug message - HIDDEN")
+    raw("")
+    
+    raw("Setting log level to DEBUG - all messages will show")
+    set_log_level(LogLevel.DEBUG)
+    info("Info message - visible")
+    debug("Debug message - NOW VISIBLE!")
+    debug("Sending command: 0x21 0x89 0x01 0x50 0x57 0x30 0x0A")
+    raw("")
+    
+    raw("Setting log level to WARN - only warnings and errors")
+    set_log_level(LogLevel.WARN)
+    info("Info message - HIDDEN")
+    debug("Debug message - HIDDEN")
+    warn("Warning message - visible")
+    error("Error message - visible")
+    raw("")
+    
+    raw("Setting log level to ERROR - only errors")
+    set_log_level(LogLevel.ERROR)
+    info("Info message - HIDDEN")
+    warn("Warning message - HIDDEN")
+    error("Error message - visible")
+    raw("")
+    
+    # Reset to INFO
+    set_log_level(LogLevel.INFO)
+    raw("=" * 60)
+    raw("Log level reset to INFO")
+    raw("=" * 60)
     raw("")
     
     # Disable logging
@@ -66,10 +105,16 @@ def main():
     
     # Usage example
     raw("Usage in your code:")
-    raw("  from jvclrpctl import info, warn, error")
+    raw("  from jvclrpctl import info, debug, warn, error, set_log_level, LogLevel")
+    raw("")
+    raw("  # Set log level to DEBUG to see debug messages")
+    raw("  set_log_level(LogLevel.DEBUG)")
+    raw("  debug('This will now be visible')")
+    raw("")
+    raw("  # Default is INFO - hides debug messages")
+    raw("  set_log_level(LogLevel.INFO)")
     raw("  info('Operation successful')")
-    raw("  warn('Low memory warning')")
-    raw("  error('Connection timeout')")
+    raw("  debug('This is hidden')")
     raw("")
     
     raw("=" * 60)

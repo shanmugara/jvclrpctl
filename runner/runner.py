@@ -9,15 +9,22 @@ from jvclrpctl import JVCProjector, PictureMode
 from jvclrpctl.jvcctl.picture_modes import PictureModeController
 from jvclrpctl import LumagenRadiance, LumagenCommands
 from jvclrpctl.lumagen.constants import LRPInputModes
-from jvclrpctl.logger import get_logger
+from jvclrpctl.logger import get_logger, set_log_level, LogLevel, debug
 
 logger = get_logger()
 
 # Configuration
+DEBUG_MODE = False  # Set to True to see debug messages
 PROJECTOR_IP = "192.168.100.240"  # Change to your projector's IP address
 PROJECTOR_PORT = 20554  # Default JVC port
 POLLING_INTERVAL = 2  # Seconds to wait between mode changes
 LUMAGEN_PORT = "/dev/ttyUSB0"  # Change to your Lumagen serial port (e.g., /dev/ttyUSB0, /dev/cu.usbserial, COM3, etc.)
+
+# Set log level based on debug mode
+if DEBUG_MODE:
+    set_log_level(LogLevel.DEBUG)
+else:
+    set_log_level(LogLevel.INFO)
 
 
 class JVC_LRP_Runner:
@@ -65,6 +72,7 @@ class JVC_LRP_Runner:
         """Get current Lumagen HDR mode"""
         try:
             hdr_status = self.lumagen_commands.get_hdr_status()
+            debug(f"HDR status response: {hdr_status}")
             is_hdr = hdr_status.get("is_hdr", False)
             if is_hdr:
                 return LRPInputModes.HDR
@@ -89,11 +97,11 @@ class JVC_LRP_Runner:
             # Connect to both devices
             self.connect()
             # Get current HDR mode from Lumagen
-            logger.raw("\nChecking Lumagen HDR status...")
+            logger.debug("\nChecking Lumagen HDR status...")
             current_hdr_mode = self.get_lumagen_hdr_mode()
 
-            logger.raw(f"Current Lumagen HDR mode: {current_hdr_mode.name}")
-            logger.raw(f"Last known Lumagen HDR mode: {self.lumagen_hdr_mode.name}")
+            logger.debug(f"Current Lumagen HDR mode: {current_hdr_mode.name}")
+            logger.debug(f"Last known Lumagen HDR mode: {self.lumagen_hdr_mode.name}")
             
             if current_hdr_mode == self.lumagen_hdr_mode:
                 logger.info("Lumagen HDR status has not changed since last check.")
@@ -102,15 +110,15 @@ class JVC_LRP_Runner:
             # Set JVC picture mode based on HDR status
             
             if current_hdr_mode == LRPInputModes.HDR:
-                logger.raw("\nLumagen is in HDR mode, setting JVC picture mode to USER3...")
+                logger.info("\nLumagen is in HDR mode, setting JVC picture mode to USER3...")
                 self.set_jvc_picture_mode(PictureMode.USER3)  # USER3 for HDR
                 self.lumagen_hdr_mode = current_hdr_mode
             elif current_hdr_mode == LRPInputModes.SDR:
-                logger.raw("\nLumagen is in SDR mode, setting JVC picture mode to USER1...")
+                logger.info("\nLumagen is in SDR mode, setting JVC picture mode to USER1...")
                 self.set_jvc_picture_mode(PictureMode.USER1)  # USER1 for SDR
                 self.lumagen_hdr_mode = current_hdr_mode
             
-            logger.info("\nRun completed successfully!")
+            logger.debug("\nRun completed successfully!")
             
         except Exception as e:
             logger.error(f"\nError during run: {e}")
@@ -129,11 +137,11 @@ if __name__ == "__main__":
 
 def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
     """Poll the Lumagen HDR status at regular intervals"""
+    logger.raw(f"\nStarting polling loop with interval of {interval} seconds...")
     try:
         while True:
-            logger.raw("\nPolling Lumagen HDR status...")
             runner.run()
-            logger.raw(f"\nWaiting for {interval} seconds before next poll...")
+            logger.debug(f"\nWaiting for {interval} seconds before next poll...")
             sleep(interval)
     except KeyboardInterrupt:
         logger.warn("\nPolling stopped by user.")
