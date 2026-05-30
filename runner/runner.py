@@ -99,17 +99,17 @@ class JVC_LRP_Runner:
             debug(f"Last known Lumagen HDR mode: {self.lumagen_hdr_mode.name}")
             
             if current_hdr_mode == self.lumagen_hdr_mode:
-                info("Lumagen HDR status has not changed since last check.")
+                debug("Lumagen HDR status has not changed since last check.")
                 return
             
             # Set JVC picture mode based on HDR status
             
             if current_hdr_mode == LRPInputModes.HDR:
-                info("Lumagen is in HDR mode, setting JVC picture mode to USER3...")
+                info("Lumagen is in HDR mode, setting JVC picture mode to USER3...\n")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)  # USER3 for HDR
                 self.lumagen_hdr_mode = current_hdr_mode
             elif current_hdr_mode == LRPInputModes.SDR:
-                info("Lumagen is in SDR mode, setting JVC picture mode to USER1...")
+                info("Lumagen is in SDR mode, setting JVC picture mode to USER1...\n")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
                 self.lumagen_hdr_mode = current_hdr_mode
             
@@ -129,7 +129,7 @@ def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
         while True:
             runner.run()
             debug(f"\nWaiting for {interval} seconds before next poll...")
-            info("sleeping...")
+            debug("sleeping...")
             sleep(interval)
     except KeyboardInterrupt:
         warn("\nPolling stopped by user.")
