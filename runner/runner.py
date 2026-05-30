@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from jvclrpctl import JVCProjector, PictureMode
 from jvclrpctl.jvcctl.picture_modes import PictureModeController
 from jvclrpctl import LumagenRadiance, LumagenCommands
-from jvclrpctl.lumagen.constants import LRPHDRModes
+from jvclrpctl.lumagen.constants import LRPInputModes
 
 # Configuration
 PROJECTOR_IP = "192.168.100.240"  # Change to your projector's IP address
@@ -28,7 +28,7 @@ class JVC_LRP_Runner:
         self.picture_mode_controller = None
         self.lumagen = None
         self.lumagen_commands = None
-        self.lumagen_hdr_mode = LRPHDRModes.NA
+        self.lumagen_hdr_mode = LRPInputModes.NA
     
     def connect(self):
         """Connect to the projector and initialize controllers"""
@@ -64,13 +64,13 @@ class JVC_LRP_Runner:
             hdr_status = self.lumagen_commands.get_hdr_status()
             is_hdr = hdr_status.get("is_hdr", False)
             if is_hdr:
-                return LRPHDRModes.HDR
+                return LRPInputModes.HDR
             else:
-                return LRPHDRModes.SDR
+                return LRPInputModes.SDR
     
         except Exception as e:
             print(f"✗ Failed to get Lumagen HDR mode: {e}")
-            return LRPHDRModes.NA
+            return LRPInputModes.NA
     
     def set_jvc_picture_mode(self, mode: PictureMode):
         """Set the projector picture mode"""
@@ -98,11 +98,11 @@ class JVC_LRP_Runner:
             
             # Set JVC picture mode based on HDR status
             
-            if current_hdr_mode == LRPHDRModes.HDR:
+            if current_hdr_mode == LRPInputModes.HDR:
                 print("\nLumagen is in HDR mode, setting JVC picture mode to USER3...")
                 self.set_jvc_picture_mode(PictureMode.USER3)  # USER3 for HDR
                 self.lumagen_hdr_mode = current_hdr_mode
-            elif current_hdr_mode == LRPHDRModes.SDR:
+            elif current_hdr_mode == LRPInputModes.SDR:
                 print("\nLumagen is in SDR mode, setting JVC picture mode to USER1...")
                 self.set_jvc_picture_mode(PictureMode.USER1)  # USER1 for SDR
                 self.lumagen_hdr_mode = current_hdr_mode
