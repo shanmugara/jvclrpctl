@@ -140,4 +140,4 @@ if __name__ == "__main__":
     raw("=" * 70)
     
     runner = JVC_LRP_Runner()
-    runner.poll(runner, interval=POLLING_INTERVAL)
+    poll(runner, interval=POLLING_INTERVAL)
