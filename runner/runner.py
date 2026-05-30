@@ -122,14 +122,6 @@ class JVC_LRP_Runner:
             self.disconnect()
 
 
-if __name__ == "__main__":
-    raw("=" * 70)
-    raw("JVC-LRP Runner - HDR Mode Detection and Picture Mode Control")
-    raw("=" * 70)
-    
-    runner = JVC_LRP_Runner()
-    runner.poll(runner, interval=POLLING_INTERVAL)
-
 def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
     """Poll the Lumagen HDR status at regular intervals"""
     raw(f"\n--Starting polling loop with interval of {interval} seconds...")
@@ -142,3 +134,10 @@ def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
     except KeyboardInterrupt:
         warn("\nPolling stopped by user.")
 
+if __name__ == "__main__":
+    raw("=" * 70)
+    raw("JVC-LRP Runner - HDR Mode Detection and Picture Mode Control")
+    raw("=" * 70)
+    
+    runner = JVC_LRP_Runner()
+    runner.poll(runner, interval=POLLING_INTERVAL)
