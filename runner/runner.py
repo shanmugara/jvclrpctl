@@ -128,7 +128,7 @@ if __name__ == "__main__":
     raw("=" * 70)
     
     runner = JVC_LRP_Runner()
-    runner.run()
+    runner.poll(runner, interval=POLLING_INTERVAL)
 
 def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
     """Poll the Lumagen HDR status at regular intervals"""
