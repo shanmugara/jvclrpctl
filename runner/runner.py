@@ -57,11 +57,11 @@ class JVC_LRP_Runner:
         """Disconnect from all devices"""
         if self.projector:
             self.projector.disconnect()
-            info("Disconnected from projector")
+            debug("Disconnected from projector")
         
         if self.lumagen:
             self.lumagen.disconnect()
-            info("Disconnected from Lumagen")
+            debug("Disconnected from Lumagen")
 
     def get_lumagen_hdr_mode(self):
         """Get current Lumagen HDR mode"""
@@ -80,7 +80,7 @@ class JVC_LRP_Runner:
     
     def set_jvc_picture_mode(self, mode: PictureMode):
         """Set the projector picture mode"""
-        info(f"Setting picture mode to {mode.display_name}...")
+        debug(f"Setting picture mode to {mode.display_name}...")
         if self.picture_mode_controller.set_mode(mode):
             info(f"Picture mode set to {mode.display_name}")
         else:
@@ -132,11 +132,12 @@ if __name__ == "__main__":
 
 def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
     """Poll the Lumagen HDR status at regular intervals"""
-    raw(f"\nStarting polling loop with interval of {interval} seconds...")
+    raw(f"\n--Starting polling loop with interval of {interval} seconds...")
     try:
         while True:
             runner.run()
             debug(f"\nWaiting for {interval} seconds before next poll...")
+            info("sleeping...")
             sleep(interval)
     except KeyboardInterrupt:
         warn("\nPolling stopped by user.")
