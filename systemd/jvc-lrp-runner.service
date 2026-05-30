@@ -1,0 +1,22 @@
+[Unit]
+Description=JVC-LRP Runner - HDR Mode Detection and Picture Mode Control
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=speriya
+WorkingDirectory=/home/speriya/jvclrpctl
+Environment="PATH=/home/speriya/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+# Uncomment to enable debug mode
+#Environment="DEBUG=true"
+ExecStart=/home/speriya/venv/bin/python /home/speriya/jvclrpctl/runner/runner.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
+
+[Install]
+WantedBy=multi-user.target
