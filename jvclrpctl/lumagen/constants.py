@@ -3,6 +3,8 @@ Constants and command codes for Lumagen Radiance control
 Based on Radiance Tech Tip 11 RS232 Command Interface
 """
 
+import enum
+
 import serial
 
 # Serial connection defaults
@@ -46,3 +48,9 @@ RESPONSE_TERMINATOR = b'\x0d\x0a'  # <CR><LF>
 # HDR status values (from F field in ZQI22/23/24)
 HDR_STATUS_SDR = 0
 HDR_STATUS_HDR = 1
+
+class LRPInputModes(enum.Enum):
+    """HDR mode values for ZQI22/23/24 F field"""
+    SDR = 0
+    HDR = 1
+    NA = 2  # Not applicable (e.g., no input)
