@@ -16,7 +16,8 @@ PROJECTOR_IP = "192.168.100.240"  # Change to your projector's IP address
 PROJECTOR_PORT = 20554  # Default JVC port
 POLLING_INTERVAL = 2  # Seconds to wait between mode changes
 LUMAGEN_PORT = "/dev/ttyUSB0"  # Change to your Lumagen serial port (e.g., /dev/ttyUSB0, /dev/cu.usbserial, COM3, etc.)
-
+JVC_PICTURE_MODE_HDR = PictureMode.USER3  # Picture mode to use when HDR is detected
+JVC_PICTURE_MODE_SDR = PictureMode.USER1  # Picture mode to use when SDR is detected
 # DEBUG is automatically set from environment variable (DEBUG=true or DEBUG=false)
 # When DEBUG=true, debug messages will be visible
 
@@ -36,21 +37,21 @@ class JVC_LRP_Runner:
     
     def connect(self):
         """Connect to the projector and initialize controllers"""
-        raw(f"Connecting to JVC projector at {self.projector_ip}:{self.projector_port}...")
+        debug(f"Connecting to JVC projector at {self.projector_ip}:{self.projector_port}...")
         self.projector = JVCProjector(self.projector_ip, self.projector_port)
         self.projector.connect()
-        info("Connected to projector!")
+        debug("Connected to projector!")
         
         self.picture_mode_controller = PictureModeController(self.projector)
-        info("Picture mode controller initialized!")
+        debug("Picture mode controller initialized!")
 
-        raw(f"Connecting to Lumagen on {self.lumagen_port}...")
+        debug(f"Connecting to Lumagen on {self.lumagen_port}...")
         self.lumagen = LumagenRadiance(self.lumagen_port)
         self.lumagen.connect()
-        info("Lumagen connected!")
+        debug("Lumagen connected!")
         
         self.lumagen_commands = LumagenCommands(self.lumagen)
-        info("Lumagen commands initialized!")
+        debug("Lumagen commands initialized!")
     
     def disconnect(self):
         """Disconnect from all devices"""
@@ -79,7 +80,7 @@ class JVC_LRP_Runner:
     
     def set_jvc_picture_mode(self, mode: PictureMode):
         """Set the projector picture mode"""
-        raw(f"Setting picture mode to {mode.display_name}...")
+        info(f"Setting picture mode to {mode.display_name}...")
         if self.picture_mode_controller.set_mode(mode):
             info(f"Picture mode set to {mode.display_name}")
         else:
@@ -105,11 +106,11 @@ class JVC_LRP_Runner:
             
             if current_hdr_mode == LRPInputModes.HDR:
                 info("Lumagen is in HDR mode, setting JVC picture mode to USER3...")
-                self.set_jvc_picture_mode(PictureMode.USER3)  # USER3 for HDR
+                self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)  # USER3 for HDR
                 self.lumagen_hdr_mode = current_hdr_mode
             elif current_hdr_mode == LRPInputModes.SDR:
                 info("Lumagen is in SDR mode, setting JVC picture mode to USER1...")
-                self.set_jvc_picture_mode(PictureMode.USER1)  # USER1 for SDR
+                self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
                 self.lumagen_hdr_mode = current_hdr_mode
             
             debug("Run completed successfully!")
