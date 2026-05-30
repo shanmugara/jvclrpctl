@@ -6,11 +6,14 @@ Handles serial communication with Lumagen Radiance processors via USB
 import serial
 import time
 from typing import Optional
+from ..logger import get_logger
 from .constants import (
     DEFAULT_BAUDRATE, DEFAULT_TIMEOUT, DEFAULT_BYTESIZE,
     DEFAULT_PARITY, DEFAULT_STOPBITS,
     RESPONSE_PREFIX, RESPONSE_TERMINATOR
 )
+
+logger = get_logger()
 
 
 class LumagenError(Exception):
@@ -88,12 +91,12 @@ class LumagenRadiance:
             self.serial.reset_output_buffer()
             
             self._connected = True
-            print(f"Connected to Lumagen Radiance on {self.port} at {self.baudrate} baud")
+            logger.info(f"Connected to Lumagen Radiance on {self.port} at {self.baudrate} baud")
             return True
             
         except (serial.SerialException, OSError) as e:
             if hasattr(e, 'errno') and e.errno == 2:  # FileNotFoundError
-                print(f"✗ Port {self.port} not found. Check the port name and connection.")
+                logger.error(f"Port {self.port} not found. Check the port name and connection.")
                 return False          
             if hasattr(e, 'errno') and e.errno == 13:  # PermissionError
                 raise LumagenConnectionError(f"Permission denied for port {self.port}. Try running with elevated permissions or check port access.")
@@ -109,7 +112,7 @@ class LumagenRadiance:
             finally:
                 self.serial = None
                 self._connected = False
-                print("Disconnected from Lumagen Radiance")
+                logger.info("Disconnected from Lumagen Radiance")
     
     def is_connected(self) -> bool:
         """Check if connected to Radiance"""

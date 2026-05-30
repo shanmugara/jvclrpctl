@@ -5,9 +5,12 @@ Simplified interface for selecting and managing picture modes
 
 from enum import Enum
 from typing import Optional
+from ..logger import get_logger
 from .connection import JVCProjector
 from .commands import JVCCommands
 from .constants import PictureModes, CMD_PICTURE_MODE
+
+logger = get_logger()
 
 
 class PictureMode(Enum):
@@ -133,8 +136,8 @@ class PictureModeController:
     
     def print_available_modes(self):
         """Print all available picture modes"""
-        print("\nAvailable Picture Modes:")
-        print("-" * 40)
+        logger.raw("\nAvailable Picture Modes:")
+        logger.raw("-" * 40)
         for mode in PictureMode:
-            print(f"  {mode.name:<20} - {mode.display_name}")
-        print("-" * 40)
+            logger.raw(f"  {mode.name:<20} - {mode.display_name}")
+        logger.raw("-" * 40)

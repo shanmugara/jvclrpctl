@@ -12,6 +12,9 @@ from .lumagen import LumagenRadiance, LumagenCommands
 # Automation
 from .automation import HDRAutomation
 
+# Logger
+from .logger import get_logger, set_logger_enabled, info, warn, error, raw
+
 __version__ = "0.1.0"
 __all__ = [
     # JVC
@@ -24,4 +27,11 @@ __all__ = [
     "LumagenCommands",
     # Automation
     "HDRAutomation",
+    # Logger
+    "get_logger",
+    "set_logger_enabled",
+    "info",
+    "warn",
+    "error",
+    "raw",
 ]
