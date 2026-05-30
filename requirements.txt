@@ -1,0 +1,13 @@
+# jvclrpctl - JVC Projector & Lumagen Control
+
+# Required for Lumagen serial communication
+pyserial>=3.5
+
+# Development dependencies (optional)
+# Uncomment below if you want to install development tools
+
+# pytest>=7.0
+# pytest-cov>=3.0
+# black>=22.0
+# flake8>=4.0
+# mypy>=0.950
