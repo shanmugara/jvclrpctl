@@ -61,8 +61,11 @@ Environment="PYTHONUNBUFFERED=1"
 ExecStart=${PROJECT_DIR}/venv/bin/python ${PROJECT_DIR}/runner/runner.py
 Restart=on-failure
 RestartSec=10
-StandardOutput=journal
-StandardError=journal
+# StandardOutput=journal
+# StandardError=journal
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
 
 [Install]
 WantedBy=multi-user.target
