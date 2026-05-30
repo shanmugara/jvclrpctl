@@ -13,8 +13,8 @@ from jvclrpctl.lumagen.constants import LRPInputModes
 # Configuration
 PROJECTOR_IP = "192.168.100.240"  # Change to your projector's IP address
 PROJECTOR_PORT = 20554  # Default JVC port
-TEST_WAIT_TIME = 10  # Seconds to wait between mode changes
-LUMAGEN_PORT = "/dev/cu.usbserial-BG0183YB"
+POLLING_INTERVAL = 2  # Seconds to wait between mode changes
+LUMAGEN_PORT = "/dev/ttyUSB0"  # Change to your Lumagen serial port (e.g., /dev/ttyUSB0, /dev/cu.usbserial, COM3, etc.)
 
 
 class JVC_LRP_Runner:
@@ -123,3 +123,15 @@ if __name__ == "__main__":
     
     runner = JVC_LRP_Runner()
     runner.run()
+
+def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
+    """Poll the Lumagen HDR status at regular intervals"""
+    try:
+        while True:
+            print("\nPolling Lumagen HDR status...")
+            runner.run()
+            print(f"\nWaiting for {interval} seconds before next poll...")
+            sleep(interval)
+    except KeyboardInterrupt:
+        print("\nPolling stopped by user.")
+
