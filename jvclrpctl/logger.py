@@ -3,9 +3,14 @@ Color-coded logger for jvclrpctl
 Provides colored console output for different log levels
 """
 
+import os
 import sys
 from enum import IntEnum
 from typing import Optional
+
+
+# Discover DEBUG mode from environment variable
+DEBUG = os.getenv('DEBUG', 'false').lower() in ('true', '1', 'yes')
 
 
 class LogLevel(IntEnum):
@@ -70,11 +75,16 @@ class Logger:
 _logger: Optional[Logger] = None
 
 
+def _get_initial_log_level() -> LogLevel:
+    """Get initial log level based on DEBUG setting"""
+    return LogLevel.DEBUG if DEBUG else LogLevel.INFO
+
+
 def get_logger() -> Logger:
     """Get the global logger instance"""
     global _logger
     if _logger is None:
-        _logger = Logger()
+        _logger = Logger(level=_get_initial_log_level())
     return _logger
 
 

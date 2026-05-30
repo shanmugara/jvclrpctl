@@ -13,7 +13,7 @@ from .lumagen import LumagenRadiance, LumagenCommands
 from .automation import HDRAutomation
 
 # Logger
-from .logger import get_logger, set_logger_enabled, set_log_level, LogLevel, info, debug, warn, error, raw
+from .logger import get_logger, set_logger_enabled, set_log_level, LogLevel, DEBUG, info, debug, warn, error, raw
 
 __version__ = "0.1.0"
 __all__ = [
@@ -32,6 +32,7 @@ __all__ = [
     "set_logger_enabled",
     "set_log_level",
     "LogLevel",
+    "DEBUG",
     "info",
     "debug",
     "warn",

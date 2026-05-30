@@ -4,8 +4,18 @@
 
 The `jvclrpctl` library includes a built-in color-coded logger that provides clear, categorized output to stdout.
 
+### Automatic Debug Mode Discovery
+
+The logger automatically discovers the `DEBUG` environment variable on startup:
+- **`DEBUG=true`**, **`DEBUG=1`**, or **`DEBUG=yes`** → Debug mode enabled (shows all messages)
+- **`DEBUG=false`** or undefined → Normal mode (hides debug messages)
+
+All modules that import the logger inherit this setting automatically.
+
 ### Features
 
+- **Automatic environment detection**: Discovers DEBUG environment variable on import
+- **Global DEBUG variable**: Single source of truth for debug mode across all modules
 - **Color-coded output**: Different message types use different colors for easy identification
 - **Prefixed messages**: Each log level has a clear prefix
 - **Log level filtering**: Set minimum log level to control which messages are displayed
@@ -81,13 +91,15 @@ set_logger_enabled(True)
 
 Control which messages are displayed by setting a minimum log level. Only messages at or above the set level will be shown.
 
+**Note:** The log level is automatically set based on the `DEBUG` environment variable on import. You typically don't need to call `set_log_level()` unless you want to override the environment-based behavior.
+
 ```python
 from jvclrpctl import set_log_level, LogLevel
 
 # Show all messages including debug (useful during development)
 set_log_level(LogLevel.DEBUG)
 
-# Show info and above, hide debug (default)
+# Show info and above, hide debug (default when DEBUG is not set)
 set_log_level(LogLevel.INFO)
 
 # Show only warnings and errors
@@ -97,20 +109,32 @@ set_log_level(LogLevel.WARN)
 set_log_level(LogLevel.ERROR)
 ```
 
-**Common Usage Pattern:**
+#### Using the DEBUG Variable
+
+The `DEBUG` variable is automatically set from the environment and can be imported by any module:
 
 ```python
-from jvclrpctl import set_log_level, LogLevel, debug, info
+from jvclrpctl import DEBUG, info, debug
 
-# In development/debug mode
-if debug_mode:
-    set_log_level(LogLevel.DEBUG)
+if DEBUG:
+    info("Running in debug mode")
+    debug("Detailed information...")
 else:
-    set_log_level(LogLevel.INFO)
+    info("Running in normal mode")
+```
 
-# Debug messages only show when level is DEBUG
-debug("Detailed trace information")
-info("Normal operation message")
+**Environment Variable Control:**
+
+```bash
+# Normal mode - debug messages hidden (default)
+python your_script.py
+
+# Debug mode - all messages visible
+DEBUG=true python your_script.py
+
+# Also works with:
+DEBUG=1 python your_script.py
+DEBUG=yes python your_script.py
 ```
 
 ### Examples
@@ -118,6 +142,7 @@ info("Normal operation message")
 See the complete examples:
 - [examples/logger_demo.py](../examples/logger_demo.py) - Full feature demonstration
 - [examples/log_level_example.py](../examples/log_level_example.py) - Log level control examples
+- [examples/test_debug_env.py](../examples/test_debug_env.py) - DEBUG environment variable test
 
 ```bash
 # Run the full demo
@@ -125,6 +150,10 @@ python examples/logger_demo.py
 
 # Run log level examples
 python examples/log_level_example.py
+
+# Test DEBUG environment variable
+python examples/test_debug_env.py
+DEBUG=true python examples/test_debug_env.py
 
 # Run with debug enabled via environment variable
 DEBUG=true python examples/log_level_example.py
@@ -134,54 +163,53 @@ DEBUG=true python examples/log_level_example.py
 
 #### In Your Application
 
+The logger automatically discovers the DEBUG environment variable, so you don't need to configure it manually:
+
 ```python
-import os
-from jvclrpctl import set_log_level, LogLevel, info, debug
+from jvclrpctl import DEBUG, info, debug
 
-# Set log level based on environment or config
-DEBUG_MODE = os.getenv('DEBUG', 'false').lower() == 'true'
-
-if DEBUG_MODE:
-    set_log_level(LogLevel.DEBUG)
-    debug("Debug mode enabled")
-else:
-    set_log_level(LogLevel.INFO)
-
-# Use throughout your code
+# DEBUG is automatically set from environment
 info("Application started")
-debug("Connection parameters: host=192.168.1.100, port=20554")
+debug("Debug info - only visible when DEBUG=true")
+
+# You can check the DEBUG flag if needed
+if DEBUG:
+    debug("Verbose diagnostic information")
 ```
 
 #### In runner.py
 
-The runner includes a `DEBUG_MODE` configuration variable:
-
-```python
-# In runner/runner.py
-DEBUG_MODE = False  # Set to True to see debug messages
-
-if DEBUG_MODE:
-    set_log_level(LogLevel.DEBUG)
-else:
-    set_log_level(LogLevel.INFO)
-```
-
-When `DEBUG_MODE = True`, you'll see detailed debug output like:
-- Command/response traces
-- HDR status details
-- Connection parameters
-
-#### Command Line Control
-
-You can also control log level via environment variables:
+The runner automatically inherits the DEBUG setting from the environment:
 
 ```bash
-# Normal mode (INFO level)
+# Normal mode - hides debug messages
 python runner/runner.py
 
-# Debug mode (DEBUG level)
-DEBUG_MODE=true python runner/runner.py
+# Debug mode - shows all debug output
+DEBUG=true python runner/runner.py
 ```
+
+The runner includes debug statements that show:
+- HDR status response details
+- Connection parameters
+- State transitions
+
+#### All Modules Inherit DEBUG
+
+Any module that imports from `jvclrpctl` automatically inherits the DEBUG setting:
+
+```python
+# In any module
+from jvclrpctl import DEBUG, debug, info
+
+# DEBUG is already set from environment
+debug("This respects the global DEBUG setting")
+```
+
+**No need to:**
+- Define DEBUG in each module
+- Pass DEBUG as a parameter
+- Manually set log levels
 
 ### Integration
 
