@@ -91,7 +91,7 @@ class LumagenRadiance:
             self.serial.reset_output_buffer()
             
             self._connected = True
-            logger.info(f"Connected to Lumagen Radiance on {self.port} at {self.baudrate} baud")
+            logger.debug(f"Connected to Lumagen Radiance on {self.port} at {self.baudrate} baud")
             return True
             
         except (serial.SerialException, OSError) as e:
@@ -112,7 +112,7 @@ class LumagenRadiance:
             finally:
                 self.serial = None
                 self._connected = False
-                logger.info("Disconnected from Lumagen Radiance")
+                logger.debug("Disconnected from Lumagen Radiance")
     
     def is_connected(self) -> bool:
         """Check if connected to Radiance"""
