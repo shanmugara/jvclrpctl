@@ -105,11 +105,11 @@ class JVC_LRP_Runner:
             # Set JVC picture mode based on HDR status
             
             if current_hdr_mode == LRPInputModes.HDR:
-                info("Lumagen is in HDR mode, setting JVC picture mode to USER3...\n")
+                info("HDR ==> USER3\n")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)  # USER3 for HDR
                 self.lumagen_hdr_mode = current_hdr_mode
             elif current_hdr_mode == LRPInputModes.SDR:
-                info("Lumagen is in SDR mode, setting JVC picture mode to USER1...\n")
+                info("SDR ==> USER1\n")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
                 self.lumagen_hdr_mode = current_hdr_mode
             
