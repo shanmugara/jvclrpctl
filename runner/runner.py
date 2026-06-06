@@ -138,7 +138,8 @@ class JVC_LRP_Runner:
 
 def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):
     """Poll the Lumagen HDR status at regular intervals"""
-    raw(f"\n--Starting polling loop with interval of {interval} seconds...")
+    info(f"Starting polling with interval of {interval} seconds...")
+    # raw(f"\n--Starting polling loop with interval of {interval} seconds...")
     try:
         while True:
             runner.run()
