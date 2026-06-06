@@ -79,7 +79,8 @@ class Logger:
             
         except (OSError, PermissionError) as e:
             # If we can't create the log directory or file, just continue without file logging
-            self.error(f"Failed to set up file logging in {log_dir}: {e}")
+            # Print to stderr instead of using self.error() since logger isn't fully initialized
+            print(f"Warning: Failed to set up file logging in {log_dir}: {e}", file=sys.stderr)
             self.file_handler = None
             self.file_logger = None
     

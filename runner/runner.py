@@ -92,7 +92,7 @@ class JVC_LRP_Runner:
             # Connect to both devices
             self.connect()
             # Get current HDR mode from Lumagen
-            debug("\nChecking Lumagen HDR status...")
+            debug("Checking Lumagen HDR status...")
             current_hdr_mode = self.get_lumagen_hdr_mode()
 
             debug(f"Current Lumagen HDR mode: {current_hdr_mode.name}")
