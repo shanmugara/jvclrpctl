@@ -124,7 +124,7 @@ class JVC_LRP_Runner:
                 debug("Initial run detected. Verifying current JVC picture mode...")
                 current_jvc_mode = self.picture_mode_controller.get_current_mode()
                 if current_jvc_mode is None:
-                    warn("Could not read current JVC picture mode. Skipping this cycle.")
+                    error("Could not read current JVC picture mode. Skipping this cycle.")
                     return
                 else:
                     debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
