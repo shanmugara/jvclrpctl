@@ -10,7 +10,7 @@ from .constants import (
     CMD_INPUT, INPUT_HDMI_1, INPUT_HDMI_2,
     CMD_PICTURE_MODE
 )
-from ..logger import warn, debug
+from ..logger import info, warn, debug
 
 
 class JVCCommands:
@@ -138,7 +138,7 @@ class JVCCommands:
             current_mode = self.get_picture_mode()
             
             if current_mode == mode_value:
-                debug(f"Picture mode successfully set and verified (attempt {attempt + 1})")
+                info(f"Picture mode successfully set and verified (attempt {attempt + 1})")
                 return True
             else:
                 if attempt < max_retries - 1:
