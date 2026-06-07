@@ -4,13 +4,13 @@ High-level command methods for controlling the projector
 """
 
 import time
-from .connection import JVCProjector
+from .connection import JVCProjector, JVCConnectionError, JVCCommandError
 from .constants import (
     CMD_POWER, POWER_ON, POWER_OFF,
     CMD_INPUT, INPUT_HDMI_1, INPUT_HDMI_2,
     CMD_PICTURE_MODE
 )
-from ..logger import info, warn, debug
+from ..logger import info, warn, debug, error, raw
 
 
 class JVCCommands:
@@ -37,8 +37,12 @@ class JVCCommands:
         Returns:
             True if successful
         """
-        response = self.projector.send_operation(CMD_POWER, POWER_ON)
-        return b'\x06' in response or b'PJACK' in response
+        try:
+            self.projector.send_operation(CMD_POWER, POWER_ON)
+            return True
+        except Exception as e:
+            error(f"Error sending power on command: {e}")
+            return False
     
     def power_off(self) -> bool:
         """
@@ -47,8 +51,13 @@ class JVCCommands:
         Returns:
             True if successful
         """
-        response = self.projector.send_operation(CMD_POWER, POWER_OFF)
-        return b'\x06' in response or b'PJACK' in response
+        try:
+            self.projector.send_operation(CMD_POWER, POWER_OFF)
+            return True
+        except Exception as e:
+            error(f"Error sending power off command: {e}")
+            return False
+        
     
     def get_power_status(self) -> str:
         """
@@ -57,17 +66,21 @@ class JVCCommands:
         Returns:
             Power status string
         """
-        response = self.projector.send_reference(CMD_POWER)
-        # Response is ASCII: b'0' = standby, b'1' = on, b'2' = cooling, b'3' = warming
-        if response == b'0':
-            return "standby"
-        elif response == b'1':
-            return "on"
-        elif response == b'2':
-            return "cooling"
-        elif response == b'3':
-            return "warming"
-        return "unknown"
+        try:
+            response = self.projector.send_reference(CMD_POWER)
+            # Response is ASCII: b'0' = standby, b'1' = on, b'2' = cooling, b'3' = warming
+            if response == b'0':
+                return "standby"
+            elif response == b'1':
+                return "on"
+            elif response == b'2':
+                return "cooling"
+            elif response == b'3':
+                return "warming"
+            return "unknown"
+        except Exception as e:
+            error(f"Error querying power status: {e}")
+            return "unknown"
     
     # Input selection commands
     
@@ -78,8 +91,12 @@ class JVCCommands:
         Returns:
             True if successful
         """
-        response = self.projector.send_operation(CMD_INPUT, INPUT_HDMI_1)
-        return b'\x06' in response or b'PJACK' in response
+        try:
+            self.projector.send_operation(CMD_INPUT, INPUT_HDMI_1)
+            return True
+        except Exception as e:
+            error(f"Error selecting HDMI 1 input: {e}")
+            return False
     
     def select_hdmi_2(self) -> bool:
         """
@@ -88,8 +105,12 @@ class JVCCommands:
         Returns:
             True if successful
         """
-        response = self.projector.send_operation(CMD_INPUT, INPUT_HDMI_2)
-        return b'\x06' in response or b'PJACK' in response
+        try:
+            self.projector.send_operation(CMD_INPUT, INPUT_HDMI_2)
+            return True
+        except Exception as e:
+            error(f"Error selecting HDMI 2 input: {e}")
+            return False
     
     def get_current_input(self) -> str:
         """
@@ -98,13 +119,17 @@ class JVCCommands:
         Returns:
             Input name string
         """
-        response = self.projector.send_reference(CMD_INPUT)
-        # Response is ASCII: b'6' = HDMI-1, b'7' = HDMI-2
-        if response == b'6':
-            return "HDMI-1"
-        elif response == b'7':
-            return "HDMI-2"
-        return "unknown"
+        try:
+            response = self.projector.send_reference(CMD_INPUT)
+            # Response is ASCII: b'6' = HDMI-1, b'7' = HDMI-2
+            if response == b'6':
+                return "HDMI-1"
+            elif response == b'7':
+                return "HDMI-2"
+            return "unknown"
+        except Exception as e:
+            error(f"Error querying current input: {e}")
+            return "unknown"
     
     # Picture mode commands
     
@@ -120,20 +145,18 @@ class JVCCommands:
             True if successful
         """
         for attempt in range(max_retries):
-            # Send the command
-            response = self.projector.send_operation(CMD_PICTURE_MODE, mode_value)
-            debug(f"JVC set picture mode raw response: {response}")
-            
-            # Check if command was acknowledged
-            if not (b'\x06' in response or b'PJACK' in response):
+            try:
+                response = self.projector.send_operation(CMD_PICTURE_MODE, mode_value)
+                debug(f"JVC set picture mode raw response: {response}")
+            except Exception as e:
                 if attempt < max_retries - 1:
-                    warn(f"JVC Picture mode command no PJACK (attempt {attempt + 1}/{max_retries}). Retrying in 1 second...")
+                    warn(f"JVC Picture mode command failed (attempt {attempt + 1}/{max_retries}): {e}. Retrying in 1 second...")
                     time.sleep(1)
                     continue
                 else:
-                    warn(f"JVC Picture mode command no PJACK after {max_retries} attempts")
+                    warn(f"JVC Picture mode command failed after {max_retries} attempts: {e}")
                     return False
-            
+
             # Verify the mode was actually set
             time.sleep(0.5)  # Brief delay to let the projector update
             debug("JVC Verifying picture mode...")
@@ -161,6 +184,10 @@ class JVCCommands:
         Returns:
             Picture mode value
         """
-        response = self.projector.send_reference(CMD_PICTURE_MODE)
-        # Parse response to extract mode value
-        return response
+        try:
+            response = self.projector.send_reference(CMD_PICTURE_MODE)
+            # Parse response to extract mode value
+            return response
+        except Exception as e:
+            error(f"Error querying picture mode: {e}")
+            return b''

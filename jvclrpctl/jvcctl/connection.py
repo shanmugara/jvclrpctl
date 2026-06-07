@@ -14,9 +14,9 @@ from .constants import (
 )
 
 # Add parent directory to path so we can import jvclrpctl
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from logger import debug, warn, error, info
+from ..logger import debug, warn, error, info
 
 
 class JVCProjectorError(Exception):
@@ -118,6 +118,10 @@ class JVCProjector:
             debug(f"JVC connection error: {e}")
             self.disconnect()  # Clean up socket
             raise JVCConnectionError(f"Failed to connect to {self.host}:{self.port}: {e}")
+        except Exception as e:
+            debug(f"Unexpected error during JVC connection: {e}")
+            self.disconnect()  # Clean up socket
+            raise JVCConnectionError(f"Unexpected error: {e}")
     
     def disconnect(self):
         """Close connection to the projector"""
@@ -210,6 +214,10 @@ class JVCProjector:
             raise JVCCommandError("Command timeout - no response from projector")
         except socket.error as e:
             raise JVCConnectionError(f"Communication error: {e}")
+        except JVCProjectorError:
+            raise
+        except Exception as e:
+            raise JVCCommandError(f"Unexpected error: {e}")
     
     def send_operation(self, command: bytes, data: bytes = b'') -> bytes:
         """
@@ -222,21 +230,41 @@ class JVCProjector:
         Returns:
             Response from projector
         """
-        return self._send_command(HEADER_OPERATION, command, data)
+        try:
+            return self._send_command(HEADER_OPERATION, command, data)
+        except JVCCommandError as e:
+            error(f"Operation command failed: {e}")
+            raise
+        except JVCConnectionError as e:
+            error(f"Connection error during operation command: {e}")
+            raise
+        except Exception as e:
+            error(f"Unexpected error during operation command: {e}")
+            raise JVCCommandError(f"Unexpected error: {e}")
     
     def send_reference(self, command: bytes, data: bytes = b'') -> bytes:
         """
         Send a reference/query command (header: ?)
-        
+
         Args:
             command: Command code
             data: Command parameters
-            
+
         Returns:
             Response from projector
         """
-        return self._send_command(HEADER_REFERENCE, command, data)
-    
+        try:
+            return self._send_command(HEADER_REFERENCE, command, data)
+        except JVCCommandError as e:
+            error(f"Reference command failed: {e}")
+            raise
+        except JVCConnectionError as e:
+            error(f"Connection error during reference command: {e}")
+            raise
+        except Exception as e:
+            error(f"Unexpected error during reference command: {e}")
+            raise JVCCommandError(f"Unexpected error: {e}")
+           
     def __enter__(self):
         """Context manager entry"""
         self.connect()

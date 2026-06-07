@@ -39,20 +39,27 @@ class JVC_LRP_Runner:
         """Connect to the projector and initialize controllers"""
         debug(f"Connecting to JVC projector at {self.projector_ip}:{self.projector_port}...")
         self.projector = JVCProjector(self.projector_ip, self.projector_port)
-        self.projector.connect()
-        debug("Connected to projector!")
         
-        self.picture_mode_controller = PictureModeController(self.projector)
-        debug("Picture mode controller initialized!")
-
+        if self.projector.connect():
+            debug("Connected to projector!")
+            self.picture_mode_controller = PictureModeController(self.projector)
+            debug("Picture mode controller initialized!")
+        else:
+            error("Failed to connect to projector")
+            return False
+        
         debug(f"Connecting to Lumagen on {self.lumagen_port}...")
         self.lumagen = LumagenRadiance(self.lumagen_port)
-        self.lumagen.connect()
-        debug("Lumagen connected!")
+        if self.lumagen.connect():
+            debug("Lumagen connected!")
+            self.lumagen_commands = LumagenCommands(self.lumagen)
+            debug("Lumagen commands initialized!")
+        else:
+            error("Failed to connect to Lumagen")
+            return False
         
-        self.lumagen_commands = LumagenCommands(self.lumagen)
-        debug("Lumagen commands initialized!")
-    
+        return True
+        
     def disconnect(self):
         """Disconnect from all devices"""
         if self.projector:
@@ -95,7 +102,9 @@ class JVC_LRP_Runner:
         """Run the main test sequence"""
         try:
             # Connect to both devices
-            self.connect()
+            if not self.connect():
+                error("Failed to connect to devices. Aborting run.")
+                return
             # Get current HDR mode from Lumagen
             debug("Checking Lumagen input status...")
             current_input_mode = self.get_lumagen_input_mode()
@@ -114,17 +123,20 @@ class JVC_LRP_Runner:
             if self.lumagen_input_mode == LRPInputModes.NA:
                 debug("Initial run detected. Verifying current JVC picture mode...")
                 current_jvc_mode = self.picture_mode_controller.get_current_mode()
-                debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
-                if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
-                    debug("JVC picture mode matches for HDR input mode. No change needed.")
-                    info("✓ HDR\n")
-                    self.lumagen_input_mode = current_input_mode
-                    return
-                elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == JVC_PICTURE_MODE_SDR:
-                    debug("JVC picture mode matches for SDR input mode. No change needed.")
-                    info("✓ SDR\n")
-                    self.lumagen_input_mode = current_input_mode
-                    return
+                if current_jvc_mode is None:
+                    warn("Could not read current JVC picture mode, proceeding with mode change.")
+                else:
+                    debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
+                    if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
+                        debug("JVC picture mode matches for HDR input mode. No change needed.")
+                        info("✓ HDR\n")
+                        self.lumagen_input_mode = current_input_mode
+                        return
+                    elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == JVC_PICTURE_MODE_SDR:
+                        debug("JVC picture mode matches for SDR input mode. No change needed.")
+                        info("✓ SDR\n")
+                        self.lumagen_input_mode = current_input_mode
+                        return
             
             # Set JVC picture mode based on HDR status
             

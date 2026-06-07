@@ -202,7 +202,7 @@ class HDRAutomation:
                 'lumagen_connected': self.lumagen.is_connected(),
                 'jvc_connected': self.jvc.is_connected(),
             }
-        except:
+        except Exception:
             return {
                 'running': True,
                 'error': 'Failed to get status'
