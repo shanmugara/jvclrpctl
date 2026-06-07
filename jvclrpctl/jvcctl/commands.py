@@ -3,12 +3,14 @@ JVC Projector Command Interface
 High-level command methods for controlling the projector
 """
 
+import time
 from .connection import JVCProjector
 from .constants import (
     CMD_POWER, POWER_ON, POWER_OFF,
     CMD_INPUT, INPUT_HDMI_1, INPUT_HDMI_2,
     CMD_PICTURE_MODE
 )
+from ..logger import warn, debug
 
 
 class JVCCommands:
@@ -106,18 +108,47 @@ class JVCCommands:
     
     # Picture mode commands
     
-    def set_picture_mode(self, mode_value: bytes) -> bool:
+    def set_picture_mode(self, mode_value: bytes, max_retries: int = 3) -> bool:
         """
-        Set picture mode
+        Set picture mode with verification and retry logic
         
         Args:
             mode_value: Picture mode value (from PictureModes constants)
+            max_retries: Maximum number of attempts (default: 3)
             
         Returns:
             True if successful
         """
-        response = self.projector.send_operation(CMD_PICTURE_MODE, mode_value)
-        return b'\x06' in response or b'PJACK' in response
+        for attempt in range(max_retries):
+            # Send the command
+            response = self.projector.send_operation(CMD_PICTURE_MODE, mode_value)
+            
+            # Check if command was acknowledged
+            if not (b'\x06' in response or b'PJACK' in response):
+                if attempt < max_retries - 1:
+                    warn(f"JVC Picture mode command not acknowledged (attempt {attempt + 1}/{max_retries}). Retrying in 1 second...")
+                    time.sleep(1)
+                    continue
+                else:
+                    warn(f"JVC Picture mode command not acknowledged after {max_retries} attempts")
+                    return False
+            
+            # Verify the mode was actually set
+            time.sleep(0.5)  # Brief delay to let the projector update
+            current_mode = self.get_picture_mode()
+            
+            if current_mode == mode_value:
+                debug(f"Picture mode successfully set and verified (attempt {attempt + 1})")
+                return True
+            else:
+                if attempt < max_retries - 1:
+                    warn(f"JVC Picture mode verification failed (attempt {attempt + 1}/{max_retries}). Expected {mode_value.hex()}, got {current_mode.hex()}. Retrying in 1 second...")
+                    time.sleep(1)
+                else:
+                    warn(f"JVC Picture mode verification failed after {max_retries} attempts. Expected {mode_value.hex()}, got {current_mode.hex()}")
+                    return False
+        
+        return False
     
     def get_picture_mode(self) -> bytes:
         """

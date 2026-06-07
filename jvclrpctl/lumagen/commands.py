@@ -74,10 +74,10 @@ class LumagenCommands:
                 
             except (ValueError, IndexError) as e:
                 if attempt < max_retries - 1:
-                    warn(f"Failed to parse HDR status (attempt {attempt + 1}/{max_retries}): {e}. Retrying in 1 second...")
+                    warn(f"Lumagen: Failed to parse HDR status (attempt {attempt + 1}/{max_retries}): {e}. Retrying in 1 second...")
                     time.sleep(1)
                 else:
-                    error(f"Failed to parse HDR status after {max_retries} attempts: {e}")
+                    error(f"Lumagen: Failed to parse HDR status after {max_retries} attempts: {e}")
                     return {
                         'is_hdr': False,
                         'min_luminance': 0.0,

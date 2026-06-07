@@ -80,7 +80,7 @@ class JVC_LRP_Runner:
     
     def set_jvc_picture_mode(self, mode: PictureMode):
         """Set the projector picture mode"""
-        debug(f"Setting picture mode to {mode.display_name}...")
+        info(f"Setting picture mode to {mode.display_name}...")
         if self.picture_mode_controller.set_mode(mode):
             info(f"SET: {mode.display_name}\n")
         else:
