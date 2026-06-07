@@ -3,12 +3,14 @@ Lumagen Radiance Command Interface
 High-level command methods for querying and controlling the Radiance
 """
 
+import time
 from typing import Optional, Dict, Any
 from .connection import LumagenRadiance
 from .constants import (
     CMD_QUERY_FULL_STATUS_V4, CMD_QUERY_HDR_STATUS,
     HDR_STATUS_SDR, HDR_STATUS_HDR
 )
+from ..logger import warn, error
 
 
 class LumagenCommands:
@@ -26,9 +28,12 @@ class LumagenCommands:
         """
         self.radiance = radiance
     
-    def get_hdr_status(self) -> Dict[str, Any]:
+    def get_hdr_status(self, max_retries: int = 3) -> Dict[str, Any]:
         """
         Query HDR status (ZQI52)
+        
+        Args:
+            max_retries: Maximum number of retry attempts (default: 3)
         
         Returns:
             Dictionary with:
@@ -37,32 +42,48 @@ class LumagenCommands:
                 - max_luminance (int): Maximum mastering luminance
                 - max_cll (int): Maximum content light level
         """
-        response = self.radiance.query('ZQI52')
-        
-        # Response format: I52,V,Min,Max,Cll
-        # V=0 if SDR, V=1 if HDR
-        parts = response.split(',')
-        
-        if len(parts) >= 4:
-            # Remove command echo (I52)
-            v = int(parts[1]) if len(parts) > 1 else 0
-            min_lum = float(parts[2]) if len(parts) > 2 else 0.0
-            max_lum = int(parts[3]) if len(parts) > 3 else 0
-            max_cll = int(parts[4]) if len(parts) > 4 else 0
-            
-            return {
-                'is_hdr': v == HDR_STATUS_HDR,
-                'min_luminance': min_lum,
-                'max_luminance': max_lum,
-                'max_cll': max_cll
-            }
-        
-        return {
-            'is_hdr': False,
-            'min_luminance': 0.0,
-            'max_luminance': 0,
-            'max_cll': 0
-        }
+        for attempt in range(max_retries):
+            try:
+                response = self.radiance.query('ZQI52')
+                
+                # Response format: I52,V,Min,Max,Cll
+                # V=0 if SDR, V=1 if HDR
+                parts = response.split(',')
+                
+                if len(parts) >= 4:
+                    # Remove command echo (I52)
+                    v = int(parts[1]) if len(parts) > 1 else 0
+                    min_lum = float(parts[2]) if len(parts) > 2 else 0.0
+                    max_lum = int(parts[3]) if len(parts) > 3 else 0
+                    max_cll = int(parts[4]) if len(parts) > 4 else 0
+                    
+                    return {
+                        'is_hdr': v == HDR_STATUS_HDR,
+                        'min_luminance': min_lum,
+                        'max_luminance': max_lum,
+                        'max_cll': max_cll
+                    }
+                
+                # If response format is wrong but no exception, return default
+                return {
+                    'is_hdr': False,
+                    'min_luminance': 0.0,
+                    'max_luminance': 0,
+                    'max_cll': 0
+                }
+                
+            except (ValueError, IndexError) as e:
+                if attempt < max_retries - 1:
+                    warn(f"Failed to parse HDR status (attempt {attempt + 1}/{max_retries}): {e}. Retrying in 1 second...")
+                    time.sleep(1)
+                else:
+                    error(f"Failed to parse HDR status after {max_retries} attempts: {e}")
+                    return {
+                        'is_hdr': False,
+                        'min_luminance': 0.0,
+                        'max_luminance': 0,
+                        'max_cll': 0
+                    }
     
     def get_full_status_v4(self) -> Dict[str, Any]:
         """
@@ -123,7 +144,7 @@ class LumagenCommands:
             return status
             
         except (ValueError, IndexError) as e:
-            print(f"Error parsing status: {e}")
+            error(f"Error parsing status: {e}")
             return {}
     
     def is_hdr(self) -> bool:

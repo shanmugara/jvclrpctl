@@ -33,7 +33,7 @@ class JVC_LRP_Runner:
         self.picture_mode_controller = None
         self.lumagen = None
         self.lumagen_commands = None
-        self.lumagen_hdr_mode = LRPInputModes.NA
+        self.lumagen_input_mode = LRPInputModes.NA
     
     def connect(self):
         """Connect to the projector and initialize controllers"""
@@ -63,11 +63,11 @@ class JVC_LRP_Runner:
             self.lumagen.disconnect()
             debug("Disconnected from Lumagen")
 
-    def get_lumagen_hdr_mode(self):
-        """Get current Lumagen HDR mode"""
+    def get_lumagen_input_mode(self):
+        """Get current Lumagen input mode"""
         try:
             hdr_status = self.lumagen_commands.get_hdr_status()
-            debug(f"HDR status response: {hdr_status}")
+            debug(f"Input status response: {hdr_status}")
             is_hdr = hdr_status.get("is_hdr", False)
             if is_hdr:
                 return LRPInputModes.HDR
@@ -75,7 +75,7 @@ class JVC_LRP_Runner:
                 return LRPInputModes.SDR
     
         except Exception as e:
-            error(f"Failed to get Lumagen HDR mode: {e}")
+            error(f"Failed to get Lumagen input mode: {e}")
             return LRPInputModes.NA
     
     def set_jvc_picture_mode(self, mode: PictureMode):
@@ -92,40 +92,40 @@ class JVC_LRP_Runner:
             # Connect to both devices
             self.connect()
             # Get current HDR mode from Lumagen
-            debug("Checking Lumagen HDR status...")
-            current_hdr_mode = self.get_lumagen_hdr_mode()
+            debug("Checking Lumagen input status...")
+            current_input_mode = self.get_lumagen_input_mode()
 
-            debug(f"Current Lumagen HDR mode: {current_hdr_mode.name}")
-            debug(f"Last known Lumagen HDR mode: {self.lumagen_hdr_mode.name}")
+            debug(f"Current Lumagen input mode: {current_input_mode.name}")
+            debug(f"Last known Lumagen input mode: {self.lumagen_input_mode.name}")
             
-            if current_hdr_mode == self.lumagen_hdr_mode:
-                debug("Lumagen HDR status has not changed since last check.")
+            if current_input_mode == self.lumagen_input_mode:
+                debug("Lumagen input status has not changed since last check.")
                 return
             
             if self.lumagen_hdr_mode == LRPInputModes.NA:
                 current_jvc_mode = self.picture_mode_controller.get_current_mode()
                 debug(f"Initial JVC picture mode: {current_jvc_mode.display_name}")
-                if current_hdr_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
-                    debug("Initial state is already correct for HDR. No change needed.")
+                if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
+                    debug("Initial state is already correct for HDR input mode. No change needed.")
                     info("✓ HDR\n")
-                    self.lumagen_hdr_mode = current_hdr_mode
+                    self.lumagen_input_mode = current_input_mode
                     return
-                elif current_hdr_mode == LRPInputModes.SDR and current_jvc_mode == JVC_PICTURE_MODE_SDR:
-                    debug("Initial state is already correct for SDR. No change needed.")
+                elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == JVC_PICTURE_MODE_SDR:
+                    debug("Initial state is already correct for SDR input mode. No change needed.")
                     info("✓ SDR\n")
-                    self.lumagen_hdr_mode = current_hdr_mode
+                    self.lumagen_input_mode = current_input_mode
                     return
             
             # Set JVC picture mode based on HDR status
             
-            if current_hdr_mode == LRPInputModes.HDR:
+            if current_input_mode == LRPInputModes.HDR:
                 info("HDR → U3")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)  # USER3 for HDR
-                self.lumagen_hdr_mode = current_hdr_mode
-            elif current_hdr_mode == LRPInputModes.SDR:
+                self.lumagen_input_mode = current_input_mode
+            elif current_input_mode == LRPInputModes.SDR:
                 info("SDR → U1")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
-                self.lumagen_hdr_mode = current_hdr_mode
+                self.lumagen_input_mode = current_input_mode
             
             debug("Run completed successfully!")
             
