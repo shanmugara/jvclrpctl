@@ -1,0 +1,18 @@
+[Unit]
+Description=Lumagen Radiance Pro Web UI
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/jvclrpctl/lumagen_ui
+Environment="LUMAGEN_PORT=/dev/ttyUSB1"
+Environment="PATH=/home/pi/jvclrpctl/venv/bin"
+ExecStart=/home/pi/jvclrpctl/venv/bin/python /home/pi/jvclrpctl/lumagen_ui/app.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

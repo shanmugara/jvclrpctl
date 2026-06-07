@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumagen Radiance Pro Control</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Lumagen Radiance Pro</h1>
+            <p class="subtitle">Network Control Interface</p>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div id="status-indicator" class="status-indicator">●</div>
+            <span id="status-text">Ready</span>
+        </div>
+
+        <!-- Power Control -->
+        <section class="control-section">
+            <h2>Power</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="powerControl('on')">Power On</button>
+                <button class="btn btn-secondary" onclick="powerControl('standby')">Standby</button>
+            </div>
+        </section>
+
+        <!-- Input Selection -->
+        <section class="control-section">
+            <h2>Input Selection</h2>
+            <div class="button-grid">
+                <button class="btn btn-input" onclick="selectInput(1)">Input 1</button>
+                <button class="btn btn-input" onclick="selectInput(2)">Input 2</button>
+                <button class="btn btn-input" onclick="selectInput(3)">Input 3</button>
+                <button class="btn btn-input" onclick="selectInput(4)">Input 4</button>
+                <button class="btn btn-input" onclick="selectInput(5)">Input 5</button>
+                <button class="btn btn-input" onclick="selectInput(6)">Input 6</button>
+                <button class="btn btn-input" onclick="selectInput(7)">Input 7</button>
+                <button class="btn btn-input" onclick="selectInput(8)">Input 8</button>
+            </div>
+        </section>
+
+        <!-- Memory Selection -->
+        <section class="control-section">
+            <h2>Configuration Memory</h2>
+            <div class="button-group">
+                <button class="btn btn-memory" onclick="selectMemory('A')">MEM A</button>
+                <button class="btn btn-memory" onclick="selectMemory('B')">MEM B</button>
+                <button class="btn btn-memory" onclick="selectMemory('C')">MEM C</button>
+                <button class="btn btn-memory" onclick="selectMemory('D')">MEM D</button>
+            </div>
+        </section>
+
+        <!-- Aspect Ratio -->
+        <section class="control-section">
+            <h2>Aspect Ratio</h2>
+            <div class="button-grid">
+                <button class="btn btn-aspect" onclick="setAspect('4:3')">4:3</button>
+                <button class="btn btn-aspect" onclick="setAspect('lbox')">LBOX</button>
+                <button class="btn btn-aspect" onclick="setAspect('16:9')">16:9</button>
+                <button class="btn btn-aspect" onclick="setAspect('1.85')">1.85</button>
+                <button class="btn btn-aspect" onclick="setAspect('2.35')">2.35</button>
+                <button class="btn btn-aspect" onclick="setAspect('nls')">NLS</button>
+            </div>
+        </section>
+
+        <!-- Zoom Control -->
+        <section class="control-section">
+            <h2>Zoom</h2>
+            <div class="button-group">
+                <button class="btn btn-zoom" onclick="zoomControl('in')">Zoom In (+)</button>
+                <button class="btn btn-zoom" onclick="zoomControl('out')">Zoom Out (−)</button>
+            </div>
+        </section>
+
+        <!-- Output Mode -->
+        <section class="control-section">
+            <h2>Output Resolution</h2>
+            <div class="button-grid">
+                <button class="btn btn-output" onclick="setOutput('auto')">Auto</button>
+                <button class="btn btn-output" onclick="setOutput('480p')">480p</button>
+                <button class="btn btn-output" onclick="setOutput('720p')">720p</button>
+                <button class="btn btn-output" onclick="setOutput('1080p24')">1080p24</button>
+                <button class="btn btn-output" onclick="setOutput('1080p')">1080p60</button>
+                <button class="btn btn-output" onclick="setOutput('4k24')">4K24</button>
+                <button class="btn btn-output" onclick="setOutput('4k60')">4K60</button>
+            </div>
+        </section>
+
+        <!-- Test Patterns -->
+        <section class="control-section">
+            <h2>Test Patterns</h2>
+            <div class="button-group">
+                <button class="btn btn-test" onclick="testPattern('contrast')">Contrast Pattern</button>
+                <button class="btn btn-test" onclick="testPattern('off')">Pattern Off</button>
+            </div>
+        </section>
+
+        <!-- Save Config -->
+        <section class="control-section">
+            <h2>Configuration</h2>
+            <div class="button-group">
+                <button class="btn btn-save" onclick="saveConfig()">💾 Save Configuration</button>
+                <button class="btn btn-info" onclick="getStatus()">📊 Get Status</button>
+            </div>
+        </section>
+
+        <!-- Status Display -->
+        <section class="control-section">
+            <h2>Status Information</h2>
+            <div id="status-display" class="status-display">
+                Click "Get Status" to view Lumagen information
+            </div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
