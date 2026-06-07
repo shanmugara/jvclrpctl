@@ -61,16 +61,19 @@ class LumagenCommands:
                         'is_hdr': v == HDR_STATUS_HDR,
                         'min_luminance': min_lum,
                         'max_luminance': max_lum,
-                        'max_cll': max_cll
+                        'max_cll': max_cll,
+                        'error': None
                     }
+                else:
+                    raise ValueError(f"Lumagen: Unexpected HDR status response format: {response}")
                 
                 # If response format is wrong but no exception, return default
-                return {
-                    'is_hdr': False,
-                    'min_luminance': 0.0,
-                    'max_luminance': 0,
-                    'max_cll': 0
-                }
+                # return {
+                #     'is_hdr': False,
+                #     'min_luminance': 0.0,
+                #     'max_luminance': 0,
+                #     'max_cll': 0
+                # }
                 
             except (ValueError, IndexError) as e:
                 if attempt < max_retries - 1:
@@ -82,8 +85,17 @@ class LumagenCommands:
                         'is_hdr': False,
                         'min_luminance': 0.0,
                         'max_luminance': 0,
-                        'max_cll': 0
+                        'max_cll': 0,
+                        'error': str(e)
                     }
+        # If all retries fail without raising an exception, return error
+        return {
+            'is_hdr': False,
+            'min_luminance': 0.0,
+            'max_luminance': 0,
+            'max_cll': 0,
+            'error': "Failed to get HDR status, max retries exceeded"
+        }
     
     def get_full_status_v4(self) -> Dict[str, Any]:
         """

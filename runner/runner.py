@@ -68,6 +68,11 @@ class JVC_LRP_Runner:
         try:
             hdr_status = self.lumagen_commands.get_hdr_status()
             debug(f"Input status response: {hdr_status}")
+            error_msg = hdr_status.get("error")
+            if error_msg:
+                error(f"Lumagen HDR status error: {error_msg}")
+                return LRPInputModes.ERR
+
             is_hdr = hdr_status.get("is_hdr", False)
             if is_hdr:
                 return LRPInputModes.HDR
@@ -97,6 +102,10 @@ class JVC_LRP_Runner:
 
             debug(f"Current Lumagen input mode: {current_input_mode.name}")
             debug(f"Last known Lumagen input mode: {self.lumagen_input_mode.name}")
+
+            if current_input_mode == LRPInputModes.ERR:
+                error("Error retrieving Lumagen input mode. Skipping this cycle.")
+                return
             
             if current_input_mode == self.lumagen_input_mode:
                 debug("Lumagen input status has not changed since last check.")

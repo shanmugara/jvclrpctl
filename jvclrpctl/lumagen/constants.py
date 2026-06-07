@@ -54,3 +54,4 @@ class LRPInputModes(enum.Enum):
     SDR = 0
     HDR = 1
     NA = 2  # Not applicable (e.g., no input)
+    ERR = 3  # Error retrieving status
