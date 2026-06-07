@@ -158,7 +158,7 @@ class JVCCommands:
                     return False
 
             # Verify the mode was actually set
-            time.sleep(2)  # Brief delay to let the projector update
+            time.sleep(0.5)  # Brief delay to let the projector update
             debug("JVC Verifying picture mode...")
             current_mode = self.get_picture_mode()
 
