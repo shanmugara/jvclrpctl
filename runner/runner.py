@@ -39,7 +39,7 @@ class JVC_LRP_Runner:
         """Connect to the projector and initialize controllers"""
         debug(f"Connecting to JVC projector at {self.projector_ip}:{self.projector_port}...")
         self.projector = JVCProjector(self.projector_ip, self.projector_port)
-        
+
         if self.projector.connect():
             debug("Connected to projector!")
             self.picture_mode_controller = PictureModeController(self.projector)
@@ -124,7 +124,8 @@ class JVC_LRP_Runner:
                 debug("Initial run detected. Verifying current JVC picture mode...")
                 current_jvc_mode = self.picture_mode_controller.get_current_mode()
                 if current_jvc_mode is None:
-                    warn("Could not read current JVC picture mode, proceeding with mode change.")
+                    warn("Could not read current JVC picture mode. Skipping this cycle.")
+                    return
                 else:
                     debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
                     if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
