@@ -122,23 +122,27 @@ class JVCCommands:
         for attempt in range(max_retries):
             # Send the command
             response = self.projector.send_operation(CMD_PICTURE_MODE, mode_value)
+            debug(f"JVC set picture mode raw response: {response}")
             
             # Check if command was acknowledged
             if not (b'\x06' in response or b'PJACK' in response):
                 if attempt < max_retries - 1:
-                    warn(f"JVC Picture mode command not acknowledged (attempt {attempt + 1}/{max_retries}). Retrying in 1 second...")
+                    warn(f"JVC Picture mode command no PJACK (attempt {attempt + 1}/{max_retries}). Retrying in 1 second...")
                     time.sleep(1)
                     continue
                 else:
-                    warn(f"JVC Picture mode command not acknowledged after {max_retries} attempts")
+                    warn(f"JVC Picture mode command no PJACK after {max_retries} attempts")
                     return False
             
             # Verify the mode was actually set
             time.sleep(0.5)  # Brief delay to let the projector update
+            debug("JVC Verifying picture mode...")
             current_mode = self.get_picture_mode()
+
+            debug(f"JVC Expected picture mode: {mode_value.hex()}, Current picture mode: {current_mode.hex()}")
             
             if current_mode == mode_value:
-                info(f"Picture mode successfully set and verified (attempt {attempt + 1})")
+                info(f"JVC Picture mode successfully set and verified (attempt {attempt + 1})")
                 return True
             else:
                 if attempt < max_retries - 1:
