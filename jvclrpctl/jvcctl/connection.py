@@ -6,10 +6,16 @@ Handles network communication with JVC D-ILA projectors
 import socket
 import time
 from typing import Optional, Tuple
+import sys
+import os
 from .constants import (
     DEFAULT_PORT, DEFAULT_TIMEOUT, HEADER_OPERATION, HEADER_REFERENCE,
     HEADER_RESPONSE, UNIT_ID, END_MARKER, HEADER_ACK, PJNAK, PJACK, AUTH_COMMAND, PJ_OK
 )
+
+# Add parent directory to path so we can import jvclrpctl
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from logger import debug, warn, error, info
 
 
