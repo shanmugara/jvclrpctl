@@ -112,6 +112,7 @@ class JVC_LRP_Runner:
                 return
             
             if self.lumagen_input_mode == LRPInputModes.NA:
+                debug("Initial run detected. Verifying current JVC picture mode...")
                 current_jvc_mode = self.picture_mode_controller.get_current_mode()
                 debug(f"Initial JVC picture mode: {current_jvc_mode.display_name}")
                 if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
