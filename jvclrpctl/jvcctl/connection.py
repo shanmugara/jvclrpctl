@@ -10,6 +10,7 @@ from .constants import (
     DEFAULT_PORT, DEFAULT_TIMEOUT, HEADER_OPERATION, HEADER_REFERENCE,
     HEADER_RESPONSE, UNIT_ID, END_MARKER, HEADER_ACK, PJNAK, PJACK, AUTH_COMMAND, PJ_OK
 )
+from logger import debug, warn, error, info
 
 
 class JVCProjectorError(Exception):
@@ -91,19 +92,24 @@ class JVCProjector:
             
             if auth_response == PJACK:
                 # Authentication successful - ready for commands
+                debug("JVC authentication successful")
                 self._connected = True
                 return True
             elif auth_response == PJNAK:
+                debug("JVC authentication failed: PJNAK received")
                 self.disconnect()  # Clean up socket
                 raise JVCConnectionError("Authentication failed: Projector rejected PJREQ. Check that Network Control is enabled.")
             else:
+                debug(f"JVC authentication unexpected response: {auth_response}")
                 self.disconnect()  # Clean up socket
                 raise JVCConnectionError(f"Unexpected authentication response: {auth_response}")
             
         except socket.timeout:
+            debug("JVC connection timeout")
             self.disconnect()  # Clean up socket
             raise JVCConnectionError(f"Connection timeout - no response from projector at {self.host}:{self.port}")
         except socket.error as e:
+            debug(f"JVC connection error: {e}")
             self.disconnect()  # Clean up socket
             raise JVCConnectionError(f"Failed to connect to {self.host}:{self.port}: {e}")
     
