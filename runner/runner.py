@@ -102,7 +102,7 @@ class JVC_LRP_Runner:
                 debug("Lumagen input status has not changed since last check.")
                 return
             
-            if self.lumagen_hdr_mode == LRPInputModes.NA:
+            if self.lumagen_input_mode == LRPInputModes.NA:
                 current_jvc_mode = self.picture_mode_controller.get_current_mode()
                 debug(f"Initial JVC picture mode: {current_jvc_mode.display_name}")
                 if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
