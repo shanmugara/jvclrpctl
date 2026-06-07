@@ -74,6 +74,10 @@ class Logger:
             # Create a logger for file output
             self.file_logger = logging.getLogger('jvclrpctl')
             self.file_logger.setLevel(logging.DEBUG)  # Capture all levels, filter in _log
+            
+            # Remove any existing handlers to prevent duplicates
+            self.file_logger.handlers.clear()
+            
             self.file_logger.addHandler(self.file_handler)
             self.file_logger.propagate = False  # Don't propagate to root logger
             
