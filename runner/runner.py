@@ -144,15 +144,23 @@ class JVC_LRP_Runner:
             if current_input_mode == LRPInputModes.HDR:
                 debug("HDR input detected. Setting JVC picture mode to HDR...")
                 info("HDR → U3")
-                self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)  # USER3 for HDR
-                debug("updating last known input mode to HDR")
-                self.lumagen_input_mode = current_input_mode
+                self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)
+                jvc_confirm = self.picture_mode_controller.get_current_mode()
+                if jvc_confirm == JVC_PICTURE_MODE_HDR:  # USER3 for HDR
+                    debug("updating last known input mode to HDR")
+                    self.lumagen_input_mode = current_input_mode
+                else:
+                    error("JVC picture mode verification failed for HDR mode")
             elif current_input_mode == LRPInputModes.SDR:
                 debug("SDR input detected. Setting JVC picture mode to SDR...")
                 info("SDR → U1")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
-                debug("updating last known input mode to SDR")
-                self.lumagen_input_mode = current_input_mode
+                jvc_confirm = self.picture_mode_controller.get_current_mode()
+                if jvc_confirm == JVC_PICTURE_MODE_SDR:  # USER1 for SDR
+                    debug("updating last known input mode to SDR")
+                    self.lumagen_input_mode = current_input_mode
+                else:
+                    error("JVC picture mode verification failed for SDR mode")
             
             debug("Run completed successfully!")
             

@@ -160,7 +160,7 @@ class JVCCommands:
             # Verify the mode was actually set
             time.sleep(2)  # Brief delay to let the projector update
             debug("JVC Verifying picture mode...")
-            current_mode = self.get_picture_mode()
+            current_mode = self.get_current_picture_mode()
 
             debug(f"JVC Expected picture mode: {mode_value.hex()}, Current picture mode: {current_mode.hex()}")
             
