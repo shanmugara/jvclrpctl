@@ -99,10 +99,11 @@ class JVC_LRP_Runner:
             error(f"Failed to get Lumagen input mode: {e}")
             return LRPInputModes.ERR
     
-    def set_jvc_picture_mode(self, mode: PictureMode):
+    def set_jvc_picture_mode(self, mode: PictureMode, initial_run=False):
         """Set the projector picture mode"""
-        info(f"Wait for projector {PM_SETTLE_TIME} sec...")
-        sleep(PM_SETTLE_TIME)
+        if not initial_run:
+            info(f"Wait for projector {PM_SETTLE_TIME} sec...")
+            sleep(PM_SETTLE_TIME)
 
         # connect_projector() raises JVCConnectionError on failure
         self.connect_projector()
@@ -175,6 +176,7 @@ class JVC_LRP_Runner:
                 return
             
             if self.lumagen_input_mode == LRPInputModes.NA:
+                _initial_run = True
                 debug("Initial run detected. Verifying current JVC picture mode...")
                 try:
                     current_jvc_mode = self.get_jvc_picture_mode()
@@ -196,14 +198,15 @@ class JVC_LRP_Runner:
                     info("✓ SDR\n")
                     self.lumagen_input_mode = current_input_mode
                     return
-            
+            else:
+                _initial_run = False
             # Set JVC picture mode based on HDR status
             
             if current_input_mode == LRPInputModes.HDR:
                 debug("HDR input detected. Setting JVC picture mode to HDR...")
                 info("HDR → USER3")
                 try:
-                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)
+                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR, _initial_run)
                     if self.jvc_confirm_picture_mode(JVC_PICTURE_MODE_HDR):
                         debug("updating last known input mode to HDR")
                         self.lumagen_input_mode = current_input_mode
@@ -216,7 +219,7 @@ class JVC_LRP_Runner:
                 debug("SDR input detected. Setting JVC picture mode to SDR...")
                 info("SDR → USER1")
                 try:
-                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
+                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR, _initial_run)  # USER1 for SDR
                     if self.jvc_confirm_picture_mode(JVC_PICTURE_MODE_SDR):
                         debug("updating last known input mode to SDR")
                         self.lumagen_input_mode = current_input_mode
