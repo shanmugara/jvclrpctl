@@ -206,12 +206,13 @@ class JVC_LRP_Runner:
                 debug("HDR input detected. Setting JVC picture mode to HDR...")
                 info("HDR → USER3")
                 try:
+                    # set_jvc_picture_mode raises if set_mode could not verify, so a
+                    # clean return means the mode is set and verified on the live
+                    # connection. Avoid a redundant reconnect-confirm here: the
+                    # projector refuses TCP connects for a moment after a switch.
                     self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR, _initial_run)
-                    if self.jvc_confirm_picture_mode(JVC_PICTURE_MODE_HDR):
-                        debug("updating last known input mode to HDR")
-                        self.lumagen_input_mode = current_input_mode
-                    else:
-                        error("JVC picture mode verification failed for HDR mode")
+                    debug("updating last known input mode to HDR")
+                    self.lumagen_input_mode = current_input_mode
                 except Exception as e:
                     error(f"Failed to set JVC picture mode to HDR: {e}")
 
@@ -219,12 +220,12 @@ class JVC_LRP_Runner:
                 debug("SDR input detected. Setting JVC picture mode to SDR...")
                 info("SDR → USER1")
                 try:
+                    # set_mode already verifies on the live connection; skip the
+                    # redundant reconnect-confirm (projector refuses TCP connects
+                    # briefly after a switch).
                     self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR, _initial_run)  # USER1 for SDR
-                    if self.jvc_confirm_picture_mode(JVC_PICTURE_MODE_SDR):
-                        debug("updating last known input mode to SDR")
-                        self.lumagen_input_mode = current_input_mode
-                    else:
-                        error("JVC picture mode verification failed for SDR mode")
+                    debug("updating last known input mode to SDR")
+                    self.lumagen_input_mode = current_input_mode
                 except Exception as e:
                     error(f"Failed to set JVC picture mode to SDR: {e}")
             else:
