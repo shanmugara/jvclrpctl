@@ -84,10 +84,18 @@ class JVCProjector:
             
             # Step 1: Wait for PJ_OK greeting
             greeting = self.socket.recv(1024)
-            
-            if greeting != PJ_OK:
+
+            # PJ_NG means the projector is busy (another controller connected or
+            # mid-processing) - a normal, recoverable condition, not a fault.
+            if greeting.startswith(b'PJ_NG'):
                 self.disconnect()  # Clean up socket
-                raise JVCConnectionError(f"Expected PJ_OK greeting, got: {greeting}. Check projector connection.")
+                raise JVCConnectionError(
+                    "Projector busy (PJ_NG): another controller is connected or it "
+                    "is processing. Will retry next cycle."
+                )
+            if not greeting.startswith(PJ_OK):
+                self.disconnect()  # Clean up socket
+                raise JVCConnectionError(f"Expected PJ_OK greeting, got: {greeting!r}. Check projector connection.")
             
             # Step 2: Send authentication (PJREQ with empty password)
             self.socket.sendall(AUTH_COMMAND)

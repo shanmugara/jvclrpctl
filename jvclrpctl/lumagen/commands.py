@@ -10,7 +10,7 @@ from .constants import (
     CMD_QUERY_FULL_STATUS_V4, CMD_QUERY_HDR_STATUS,
     HDR_STATUS_SDR, HDR_STATUS_HDR
 )
-from ..logger import warn, error
+from ..logger import warn, error, debug
 
 
 class LumagenCommands:
@@ -45,18 +45,22 @@ class LumagenCommands:
         for attempt in range(max_retries):
             try:
                 response = self.radiance.query('ZQI52')
-                
-                # Response format: I52,V,Min,Max,Cll
-                # V=0 if SDR, V=1 if HDR
+                debug(f"Lumagen ZQI52 raw: {response!r}")
+
+                # Per RS232 spec the ZQI52 response is "V,Min,Max,Cll" with no
+                # "I52" command echo (unlike ZQI50/ZQI51). Some firmware may still
+                # echo it, so strip an optional leading non-numeric token to make
+                # both shapes parse identically. V is always a digit (0/1).
                 parts = response.split(',')
-                
+                if parts and not parts[0].lstrip('-').isdigit():
+                    parts = parts[1:]
+
                 if len(parts) >= 4:
-                    # Remove command echo (I52)
-                    v = int(parts[1]) if len(parts) > 1 else 0
-                    min_lum = float(parts[2]) if len(parts) > 2 else 0.0
-                    max_lum = int(parts[3]) if len(parts) > 3 else 0
-                    max_cll = int(parts[4]) if len(parts) > 4 else 0
-                    
+                    v = int(parts[0])
+                    min_lum = float(parts[1])
+                    max_lum = int(parts[2])
+                    max_cll = int(parts[3])
+
                     return {
                         'is_hdr': v == HDR_STATUS_HDR,
                         'min_luminance': min_lum,
@@ -66,15 +70,7 @@ class LumagenCommands:
                     }
                 else:
                     raise ValueError(f"Lumagen: Unexpected HDR status response format: {response}")
-                
-                # If response format is wrong but no exception, return default
-                # return {
-                #     'is_hdr': False,
-                #     'min_luminance': 0.0,
-                #     'max_luminance': 0,
-                #     'max_cll': 0
-                # }
-                
+
             except (ValueError, IndexError) as e:
                 if attempt < max_retries - 1:
                     warn(f"Lumagen: Failed to parse HDR status (attempt {attempt + 1}/{max_retries}): {e}. Retrying in 1 second...")
