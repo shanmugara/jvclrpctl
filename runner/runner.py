@@ -35,9 +35,22 @@ class JVC_LRP_Runner:
         self.lumagen = None
         self.lumagen_commands = None
         self.lumagen_input_mode = LRPInputModes.NA
+
+    def connect_lumagen(self):
+        """Connect to the Lumagen and initialize commands"""
+        debug(f"Connecting to Lumagen on {self.lumagen_port}...")
+        self.lumagen = LumagenRadiance(self.lumagen_port)
+        if self.lumagen.connect():
+            debug("Lumagen connected!")
+            self.lumagen_commands = LumagenCommands(self.lumagen)
+            debug("Lumagen commands initialized!")
+            return True
+        else:
+            error("Failed to connect to Lumagen")
+            return False
     
-    def connect(self):
-        """Connect to the projector and initialize controllers"""
+    def connect_projector(self):
+        """Connect to the projector and initialize picture mode controller"""
         debug(f"Connecting to JVC projector at {self.projector_ip}:{self.projector_port}...")
         self.projector = JVCProjector(self.projector_ip, self.projector_port)
 
@@ -45,22 +58,11 @@ class JVC_LRP_Runner:
             debug("Connected to projector!")
             self.pm_controller = PictureModeController(self.projector)
             debug("Picture mode controller initialized!")
+            return True
         else:
             error("Failed to connect to projector")
             return False
-        
-        debug(f"Connecting to Lumagen on {self.lumagen_port}...")
-        self.lumagen = LumagenRadiance(self.lumagen_port)
-        if self.lumagen.connect():
-            debug("Lumagen connected!")
-            self.lumagen_commands = LumagenCommands(self.lumagen)
-            debug("Lumagen commands initialized!")
-        else:
-            error("Failed to connect to Lumagen")
-            return False
-        
-        return True
-        
+    
     def disconnect(self):
         """Disconnect from all devices"""
         if self.projector:
@@ -70,6 +72,12 @@ class JVC_LRP_Runner:
         if self.lumagen:
             self.lumagen.disconnect()
             debug("Disconnected from Lumagen")
+    
+    def disconnect_projector(self):
+        """Disconnect from the projector"""
+        if self.projector:
+            self.projector.disconnect()
+            debug("Disconnected from projector")
 
     def get_lumagen_input_mode(self):
         """Get current Lumagen input mode"""
@@ -95,18 +103,61 @@ class JVC_LRP_Runner:
         """Set the projector picture mode"""
         info(f"Wait for projector {PM_SETTLE_TIME} sec...")
         sleep(PM_SETTLE_TIME)
+
+        # connect_projector() raises JVCConnectionError on failure
+        self.connect_projector()
+
         info(f"Setting picture mode to {mode.display_name}...")
-        if self.pm_controller.set_mode(mode):
-            info(f"SET: {mode.display_name}\n")
-        else:
-            error(f"FAIL: {mode.display_name}\n")
+        try:
+            if self.pm_controller.set_mode(mode):
+                info(f"SET: {mode.display_name}\n")
+            else:
+                debug(f"FAIL: {mode.display_name}\n")
+                raise RuntimeError(f"FAIL: {mode.display_name}")
+        except Exception as e:
+            debug(f"Error setting JVC picture mode: {e}")
+            raise
+        finally:
+            self.disconnect_projector()
+
+    def get_jvc_picture_mode(self):
+        """Get the current projector picture mode"""
+        # connect_projector() raises JVCConnectionError on failure
+        self.connect_projector()
+        try:
+            mode = self.pm_controller.get_current_mode()
+            if mode is not None:
+                debug(f"Current JVC picture mode: {mode.display_name}")
+                return mode
+            else:
+                debug("Current JVC picture mode is unknown")
+                raise ValueError("Unknown JVC picture mode")
+        except Exception as e:
+            debug(f"Error querying current JVC picture mode: {e}")
+            raise
+        finally:
+            self.disconnect_projector()
+    
+    def jvc_confirm_picture_mode(self, expected_mode: PictureMode) -> bool:
+        """Confirm that the projector is currently set to the expected picture mode"""
+        try:
+            current_mode = self.get_jvc_picture_mode()
+            if current_mode == expected_mode:
+                debug(f"JVC picture mode confirmed: {current_mode.display_name}")
+                return True
+            else:
+                debug(f"JVC picture mode mismatch: expected {expected_mode.display_name}, got {current_mode.display_name}")
+                return False
+        except Exception as e:
+            debug(f"Error confirming JVC picture mode: {e}")
+            return False
 
     def run(self):
         """Run the main test sequence"""
         try:
-            # Connect to both devices
-            if not self.connect():
-                error("Failed to connect to devices. Aborting run.")
+            # Connect to Lumagen
+            if not self.connect_lumagen():
+                error("Failed to connect to Lumagen. Aborting run.")
                 return
             # Get current HDR mode from Lumagen
             debug("Checking Lumagen input status...")
@@ -125,46 +176,57 @@ class JVC_LRP_Runner:
             
             if self.lumagen_input_mode == LRPInputModes.NA:
                 debug("Initial run detected. Verifying current JVC picture mode...")
-                current_jvc_mode = self.pm_controller.get_current_mode()
-                if current_jvc_mode is None:
-                    error("Could not read current JVC picture mode. Skipping this cycle.")
+                try:
+                    current_jvc_mode = self.get_jvc_picture_mode()
+                except Exception as e:
+                    error(f"Could not read current JVC picture mode: {e}. Skipping this cycle.")
                     return
-                else:
-                    debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
-                    if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
-                        debug("JVC picture mode matches for HDR input mode. No change needed.")
-                        info("✓ HDR\n")
-                        self.lumagen_input_mode = current_input_mode
-                        return
-                    elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == JVC_PICTURE_MODE_SDR:
-                        debug("JVC picture mode matches for SDR input mode. No change needed.")
-                        info("✓ SDR\n")
-                        self.lumagen_input_mode = current_input_mode
-                        return
+                # if current_jvc_mode is None:
+                #     error("Could not read current JVC picture mode. Skipping this cycle.")
+                #     return
+                # else:
+                debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
+                if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
+                    debug("JVC picture mode matches for HDR input mode. No change needed.")
+                    info("✓ HDR\n")
+                    self.lumagen_input_mode = current_input_mode
+                    return
+                elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == JVC_PICTURE_MODE_SDR:
+                    debug("JVC picture mode matches for SDR input mode. No change needed.")
+                    info("✓ SDR\n")
+                    self.lumagen_input_mode = current_input_mode
+                    return
             
             # Set JVC picture mode based on HDR status
             
             if current_input_mode == LRPInputModes.HDR:
                 debug("HDR input detected. Setting JVC picture mode to HDR...")
                 info("HDR → USER3")
-                self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)
-                jvc_confirm = self.pm_controller.get_current_mode()
-                if jvc_confirm == JVC_PICTURE_MODE_HDR:  # USER3 for HDR
-                    debug("updating last known input mode to HDR")
-                    self.lumagen_input_mode = current_input_mode
-                else:
-                    error("JVC picture mode verification failed for HDR mode")
+                try:
+                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)
+                    if self.jvc_confirm_picture_mode(JVC_PICTURE_MODE_HDR):
+                        debug("updating last known input mode to HDR")
+                        self.lumagen_input_mode = current_input_mode
+                    else:
+                        error("JVC picture mode verification failed for HDR mode")
+                except Exception as e:
+                    error(f"Failed to set JVC picture mode to HDR: {e}")
+
             elif current_input_mode == LRPInputModes.SDR:
                 debug("SDR input detected. Setting JVC picture mode to SDR...")
                 info("SDR → USER1")
-                self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
-                jvc_confirm = self.pm_controller.get_current_mode()
-                if jvc_confirm == JVC_PICTURE_MODE_SDR:  # USER1 for SDR
-                    debug("updating last known input mode to SDR")
-                    self.lumagen_input_mode = current_input_mode
-                else:
-                    error("JVC picture mode verification failed for SDR mode")
-            
+                try:
+                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
+                    if self.jvc_confirm_picture_mode(JVC_PICTURE_MODE_SDR):
+                        debug("updating last known input mode to SDR")
+                        self.lumagen_input_mode = current_input_mode
+                    else:
+                        error("JVC picture mode verification failed for SDR mode")
+                except Exception as e:
+                    error(f"Failed to set JVC picture mode to SDR: {e}")
+            else:
+                debug(f"Unknown Lumagen input mode: {current_input_mode}. No action taken.")
+                
             debug("Run completed successfully!")
             
         except Exception as e:
