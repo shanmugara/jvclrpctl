@@ -15,7 +15,7 @@ from jvclrpctl import DEBUG, info, debug, warn, error, raw
 PROJECTOR_IP = "192.168.100.240"  # Change to your projector's IP address
 PROJECTOR_PORT = 20554  # Default JVC port
 POLLING_INTERVAL = 2  # Seconds to wait between mode changes
-PM_SETTLE_TIME = 10  # Seconds to wait after changing picture mode before checking again
+PM_SETTLE_TIME = 8  # Seconds to wait after changing picture mode before checking again
 LUMAGEN_PORT = "/dev/ttyUSB0"  # Change to your Lumagen serial port (e.g., /dev/ttyUSB0, /dev/cu.usbserial, COM3, etc.)
 JVC_PICTURE_MODE_HDR = PictureMode.USER3  # Picture mode to use when HDR is detected
 JVC_PICTURE_MODE_SDR = PictureMode.USER1  # Picture mode to use when SDR is detected
