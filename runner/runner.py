@@ -14,7 +14,8 @@ from jvclrpctl import DEBUG, info, debug, warn, error, raw
 # Configuration
 PROJECTOR_IP = "192.168.100.240"  # Change to your projector's IP address
 PROJECTOR_PORT = 20554  # Default JVC port
-POLLING_INTERVAL = 10  # Seconds to wait between mode changes
+POLLING_INTERVAL = 2  # Seconds to wait between mode changes
+PM_SETTLE_TIME = 15  # Seconds to wait after changing picture mode before checking again
 LUMAGEN_PORT = "/dev/ttyUSB0"  # Change to your Lumagen serial port (e.g., /dev/ttyUSB0, /dev/cu.usbserial, COM3, etc.)
 JVC_PICTURE_MODE_HDR = PictureMode.USER3  # Picture mode to use when HDR is detected
 JVC_PICTURE_MODE_SDR = PictureMode.USER1  # Picture mode to use when SDR is detected
@@ -30,7 +31,7 @@ class JVC_LRP_Runner:
         self.projector_port = projector_port
         self.lumagen_port = lumagen_port
         self.projector = None
-        self.picture_mode_controller = None
+        self.pm_controller = None
         self.lumagen = None
         self.lumagen_commands = None
         self.lumagen_input_mode = LRPInputModes.NA
@@ -42,7 +43,7 @@ class JVC_LRP_Runner:
 
         if self.projector.connect():
             debug("Connected to projector!")
-            self.picture_mode_controller = PictureModeController(self.projector)
+            self.pm_controller = PictureModeController(self.projector)
             debug("Picture mode controller initialized!")
         else:
             error("Failed to connect to projector")
@@ -88,12 +89,14 @@ class JVC_LRP_Runner:
     
         except Exception as e:
             error(f"Failed to get Lumagen input mode: {e}")
-            return LRPInputModes.NA
+            return LRPInputModes.ERR
     
     def set_jvc_picture_mode(self, mode: PictureMode):
         """Set the projector picture mode"""
+        info(f"Wait for projector {PM_SETTLE_TIME} sec...")
+        sleep(PM_SETTLE_TIME)
         info(f"Setting picture mode to {mode.display_name}...")
-        if self.picture_mode_controller.set_mode(mode):
+        if self.pm_controller.set_mode(mode):
             info(f"SET: {mode.display_name}\n")
         else:
             error(f"FAIL: {mode.display_name}\n")
@@ -122,7 +125,7 @@ class JVC_LRP_Runner:
             
             if self.lumagen_input_mode == LRPInputModes.NA:
                 debug("Initial run detected. Verifying current JVC picture mode...")
-                current_jvc_mode = self.picture_mode_controller.get_current_mode()
+                current_jvc_mode = self.pm_controller.get_current_mode()
                 if current_jvc_mode is None:
                     error("Could not read current JVC picture mode. Skipping this cycle.")
                     return
@@ -143,9 +146,9 @@ class JVC_LRP_Runner:
             
             if current_input_mode == LRPInputModes.HDR:
                 debug("HDR input detected. Setting JVC picture mode to HDR...")
-                info("HDR → U3")
+                info("HDR → USER3")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR)
-                jvc_confirm = self.picture_mode_controller.get_current_mode()
+                jvc_confirm = self.pm_controller.get_current_mode()
                 if jvc_confirm == JVC_PICTURE_MODE_HDR:  # USER3 for HDR
                     debug("updating last known input mode to HDR")
                     self.lumagen_input_mode = current_input_mode
@@ -153,9 +156,9 @@ class JVC_LRP_Runner:
                     error("JVC picture mode verification failed for HDR mode")
             elif current_input_mode == LRPInputModes.SDR:
                 debug("SDR input detected. Setting JVC picture mode to SDR...")
-                info("SDR → U1")
+                info("SDR → USER1")
                 self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR)  # USER1 for SDR
-                jvc_confirm = self.picture_mode_controller.get_current_mode()
+                jvc_confirm = self.pm_controller.get_current_mode()
                 if jvc_confirm == JVC_PICTURE_MODE_SDR:  # USER1 for SDR
                     debug("updating last known input mode to SDR")
                     self.lumagen_input_mode = current_input_mode
@@ -166,7 +169,6 @@ class JVC_LRP_Runner:
             
         except Exception as e:
             error(f"Error during run: {e}")
-            self.disconnect()
         finally:
             # Always disconnect at the end
             self.disconnect()
