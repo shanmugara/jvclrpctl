@@ -58,6 +58,12 @@ apt-get update -qq
 apt-get install -y -qq python3-pip python3-venv
 info "python3-pip and python3-venv installed"
 
+# ── Log directory ─────────────────────────────────────────────────────────
+step "Log directory"
+mkdir -p /var/log/jvclrpctl
+chown "$ACTUAL_USER" /var/log/jvclrpctl
+info "Log directory: /var/log/jvclrpctl (owner: $ACTUAL_USER)"
+
 # ── Serial port access ────────────────────────────────────────────────────
 step "Serial port permissions"
 usermod -a -G dialout "$ACTUAL_USER"
@@ -106,8 +112,11 @@ ExecStart=$VENV/bin/gunicorn \\
     app:app
 Restart=always
 RestartSec=10
-StandardOutput=journal
-StandardError=journal
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
+TTYReset=no
+TTYVHangup=no
 
 [Install]
 WantedBy=multi-user.target
