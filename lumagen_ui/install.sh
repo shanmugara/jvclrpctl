@@ -1,93 +1,143 @@
 #!/bin/bash
-
-# Installation script for Lumagen Web UI
+# Install lumagen-ui as a production systemd service (Gunicorn).
+# Usage: sudo ./install.sh
 
 set -e
 
-echo "=========================================="
-echo "Lumagen Web UI Installation"
-echo "=========================================="
-echo ""
+# ── Colours ───────────────────────────────────────────────────────────────
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BOLD='\033[1m'; NC='\033[0m'
+info()  { echo -e "${GREEN}[+]${NC} $*"; }
+warn()  { echo -e "${YELLOW}[!]${NC} $*"; }
+error() { echo -e "${RED}[✗]${NC} $*"; }
+step()  { echo -e "\n${BOLD}── $* ──${NC}"; }
 
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then 
-    echo "Please run as root (use sudo)"
+# ── Must run as root ──────────────────────────────────────────────────────
+if [ "$EUID" -ne 0 ]; then
+    error "Run with sudo: sudo $0"
     exit 1
 fi
 
-# Get the actual user (not root)
 ACTUAL_USER="${SUDO_USER:-$USER}"
-echo "Installing for user: $ACTUAL_USER"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV="$SCRIPT_DIR/venv"
+SERVICE_NAME="lumagen-ui"
+SERVICE_DEST="/etc/systemd/system/${SERVICE_NAME}.service"
 
-# Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo "Installation directory: $SCRIPT_DIR"
-
-# Install system dependencies
 echo ""
-echo "Installing system dependencies..."
-apt-get update
-apt-get install -y python3-pip python3-venv
-
-# Add user to dialout group for serial port access
+echo -e "${BOLD}╔══════════════════════════════════════════╗${NC}"
+echo -e "${BOLD}║   Lumagen + JVC Web UI — Install         ║${NC}"
+echo -e "${BOLD}╚══════════════════════════════════════════╝${NC}"
 echo ""
-echo "Adding $ACTUAL_USER to dialout group..."
+info "Install user : $ACTUAL_USER"
+info "Install dir  : $SCRIPT_DIR"
+echo ""
+
+# ── Configuration prompts ─────────────────────────────────────────────────
+step "Configuration"
+
+read -rp "  Lumagen serial port  [/dev/ttyUSB0]: " LUMAGEN_PORT
+LUMAGEN_PORT="${LUMAGEN_PORT:-/dev/ttyUSB0}"
+
+read -rp "  JVC projector IP     [192.168.100.240]: " JVC_HOST
+JVC_HOST="${JVC_HOST:-192.168.100.240}"
+
+read -rp "  Web UI port          [5001]: " UI_PORT
+UI_PORT="${UI_PORT:-5001}"
+
+echo ""
+info "Lumagen port : $LUMAGEN_PORT"
+info "JVC host     : ${JVC_HOST:-not configured}"
+info "UI port      : $UI_PORT"
+echo ""
+read -rp "Proceed? [Y/n]: " CONFIRM
+[[ "${CONFIRM:-Y}" =~ ^[Yy]$ ]] || { warn "Aborted."; exit 0; }
+
+# ── System packages ───────────────────────────────────────────────────────
+step "System packages"
+apt-get update -qq
+apt-get install -y -qq python3-pip python3-venv
+info "python3-pip and python3-venv installed"
+
+# ── Serial port access ────────────────────────────────────────────────────
+step "Serial port permissions"
 usermod -a -G dialout "$ACTUAL_USER"
-echo "Note: User needs to log out and back in for group changes to take effect"
+info "Added $ACTUAL_USER to dialout group (re-login required to take effect)"
 
-# Install Python dependencies
-echo ""
-echo "Installing Python dependencies..."
-if [ -d "$SCRIPT_DIR/../venv" ]; then
-    echo "Using existing virtual environment..."
-    VENV_PATH="$SCRIPT_DIR/../venv"
+# ── Python virtual environment ────────────────────────────────────────────
+step "Python virtual environment"
+if [ ! -d "$VENV" ]; then
+    info "Creating venv at $VENV"
+    sudo -u "$ACTUAL_USER" python3 -m venv "$VENV"
 else
-    echo "Creating new virtual environment..."
-    sudo -u "$ACTUAL_USER" python3 -m venv "$SCRIPT_DIR/venv"
-    VENV_PATH="$SCRIPT_DIR/venv"
+    info "Using existing venv at $VENV"
 fi
 
-sudo -u "$ACTUAL_USER" "$VENV_PATH/bin/pip" install -r "$SCRIPT_DIR/requirements.txt"
+info "Installing Python dependencies (including gunicorn)..."
+sudo -u "$ACTUAL_USER" "$VENV/bin/pip" install --quiet --upgrade pip
+sudo -u "$ACTUAL_USER" "$VENV/bin/pip" install --quiet -r "$SCRIPT_DIR/requirements.txt"
+info "Dependencies installed"
 
-# Install systemd service
-echo ""
-echo "Installing systemd service..."
+# ── Generate systemd service ──────────────────────────────────────────────
+step "Systemd service"
 
-# Update service file paths for current installation
-SERVICE_FILE="/etc/systemd/system/lumagen-ui.service"
-cp "$SCRIPT_DIR/lumagen-ui.service" "$SERVICE_FILE"
+# Build optional JVC_HOST line
+if [ -n "$JVC_HOST" ]; then
+    JVC_ENV_LINE="Environment=\"JVC_HOST=$JVC_HOST\""
+else
+    JVC_ENV_LINE="# JVC_HOST not configured — set to enable JVC controls"
+fi
 
-# Replace placeholder paths with actual paths
-HOME_DIR=$(eval echo "~$ACTUAL_USER")
-sed -i "s|/home/pi|$HOME_DIR|g" "$SERVICE_FILE"
-sed -i "s|User=pi|User=$ACTUAL_USER|g" "$SERVICE_FILE"
+cat > "$SERVICE_DEST" <<EOF
+[Unit]
+Description=Lumagen + JVC Web Control UI
+After=network.target
 
-# Reload systemd
+[Service]
+Type=simple
+User=$ACTUAL_USER
+WorkingDirectory=$SCRIPT_DIR
+Environment="LUMAGEN_PORT=$LUMAGEN_PORT"
+$JVC_ENV_LINE
+ExecStart=$VENV/bin/gunicorn \\
+    --workers 1 \\
+    --bind 0.0.0.0:$UI_PORT \\
+    --timeout 30 \\
+    --access-logfile - \\
+    app:app
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+info "Service file written to $SERVICE_DEST"
+
+# ── Enable and start ──────────────────────────────────────────────────────
+step "Enabling and starting service"
 systemctl daemon-reload
+systemctl enable "$SERVICE_NAME"
+systemctl restart "$SERVICE_NAME"
 
-# Enable service
-echo ""
-echo "Enabling lumagen-ui service..."
-systemctl enable lumagen-ui.service
+sleep 2
 
-# Check serial ports
-echo ""
-echo "Available serial ports:"
-ls -l /dev/ttyUSB* 2>/dev/null || echo "No USB serial devices found"
+if systemctl is-active --quiet "$SERVICE_NAME"; then
+    IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+    echo ""
+    echo -e "${GREEN}${BOLD}✓ Service is running!${NC}"
+    echo ""
+    echo -e "  Web UI:  ${BOLD}http://${IP}:${UI_PORT}${NC}"
+    echo -e "  Logs:    journalctl -u $SERVICE_NAME -f"
+    echo -e "  Status:  systemctl status $SERVICE_NAME"
+else
+    error "Service failed to start. Check logs:"
+    echo "  journalctl -u $SERVICE_NAME -n 30"
+    exit 1
+fi
 
 echo ""
-echo "=========================================="
-echo "Installation Complete!"
-echo "=========================================="
-echo ""
-echo "Next steps:"
-echo "1. Edit $SCRIPT_DIR/app.py to set correct LUMAGEN_PORT"
-echo "2. User $ACTUAL_USER needs to log out and back in for serial port access"
-echo "3. Start the service: sudo systemctl start lumagen-ui.service"
-echo "4. Check status: sudo systemctl status lumagen-ui.service"
-echo "5. View logs: sudo journalctl -u lumagen-ui.service -f"
-echo ""
-echo "Web UI will be available at:"
-echo "  http://localhost:5001"
-echo "  http://$(hostname -I | awk '{print $1}'):5001"
+echo -e "${YELLOW}Note:${NC} $ACTUAL_USER must log out and back in for serial port access"
+echo -e "      if this is a fresh installation."
 echo ""

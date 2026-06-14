@@ -44,13 +44,13 @@ class LumagenAspect(Enum):
 class LumagenControl:
     """Control interface for Lumagen Radiance Pro"""
     
-    def __init__(self, port: str = '/dev/ttyUSB1', baudrate: int = 115200):
+    def __init__(self, port: str = '/dev/ttyUSB1', baudrate: int = 9600):
         """
         Initialize Lumagen control
-        
+
         Args:
             port: Serial port for Lumagen RS232
-            baudrate: Default 115200 for Lumagen
+            baudrate: 9600 matches Lumagen Radiance default RS232 speed
         """
         self.port = port
         self.baudrate = baudrate
@@ -78,33 +78,30 @@ class LumagenControl:
         """Disconnect from Lumagen"""
         if self.serial and self.serial.is_open:
             self.serial.close()
-    
+        self.serial = None
+
     def send_command(self, command: str) -> str:
         """
-        Send command to Lumagen and get response
-        
-        Args:
-            command: RS232 command string
-            
-        Returns:
-            Response from Lumagen
+        Send command to Lumagen and return response.
+        Connects and disconnects automatically if no persistent connection is held.
         """
-        if not self.serial or not self.serial.is_open:
-            raise ConnectionError("Not connected to Lumagen")
-        
-        # Lumagen expects commands ending with carriage return
-        cmd = f"{command}\r"
-        self.serial.write(cmd.encode('ascii'))
-        self.serial.flush()
-        
-        # Read response
-        time.sleep(0.1)
-        response = b''
-        while self.serial.in_waiting > 0:
-            response += self.serial.read(self.serial.in_waiting)
-            time.sleep(0.05)
-        
-        return response.decode('ascii', errors='ignore').strip()
+        own_connection = (self.serial is None or not self.serial.is_open)
+        if own_connection:
+            if not self.connect():
+                raise ConnectionError(f"Cannot connect to Lumagen on {self.port}")
+        try:
+            cmd = f"{command}\r"
+            self.serial.write(cmd.encode('ascii'))
+            self.serial.flush()
+            time.sleep(0.1)
+            response = b''
+            while self.serial.in_waiting > 0:
+                response += self.serial.read(self.serial.in_waiting)
+                time.sleep(0.05)
+            return response.decode('ascii', errors='ignore').strip()
+        finally:
+            if own_connection:
+                self.disconnect()
     
     # Power Commands
     def power_on(self) -> str:

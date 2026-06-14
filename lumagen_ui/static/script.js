@@ -185,8 +185,68 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+// ── HDR Automation ────────────────────────────────────────────────────────
+
+function _applyAutomationStatus(data) {
+    const indicator = document.getElementById('automation-indicator');
+    const statusText = document.getElementById('automation-status-text');
+    const contentEl = document.getElementById('automation-content');
+    const btn = document.getElementById('automation-toggle-btn');
+
+    if (!indicator) return;
+
+    if (data.running) {
+        indicator.style.backgroundColor = '#4CAF50';
+        indicator.style.boxShadow = '0 0 8px #4CAF50';
+        statusText.textContent = 'Running';
+        btn.textContent = 'Stop';
+        btn.classList.remove('btn-start');
+        btn.classList.add('btn-stop');
+    } else {
+        indicator.style.backgroundColor = '#888';
+        indicator.style.boxShadow = 'none';
+        statusText.textContent = 'Stopped';
+        btn.textContent = 'Start';
+        btn.classList.remove('btn-stop');
+        btn.classList.add('btn-start');
+    }
+
+    const modeLabels = { HDR: 'HDR', SDR: 'SDR', NA: '—', ERR: 'ERR' };
+    contentEl.textContent = data.content ? (modeLabels[data.content] || data.content) : '';
+}
+
+async function pollAutomationStatus() {
+    try {
+        const resp = await fetch('/api/automation/status', { method: 'GET' });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (data.success) _applyAutomationStatus(data);
+    } catch (_) { /* network hiccup — silently skip */ }
+}
+
+async function toggleAutomation() {
+    const btn = document.getElementById('automation-toggle-btn');
+    const isRunning = btn.classList.contains('btn-stop');
+    const endpoint = isRunning ? '/api/automation/stop' : '/api/automation/start';
+    try {
+        const resp = await fetch(endpoint, { method: 'POST' });
+        const data = await resp.json();
+        if (data.success) {
+            _applyAutomationStatus(data);
+            showToast(data.running ? 'Automation started' : 'Automation stopped',
+                      data.running ? 'success' : 'info');
+        } else {
+            showToast(`Error: ${data.error || 'Unknown error'}`, 'error');
+        }
+    } catch (e) {
+        showToast(`Error: ${e.message}`, 'error');
+    }
+}
+
 // Initialize on load
 window.addEventListener('load', () => {
     updateStatus('Ready', true);
+    pollAutomationStatus();
+    setInterval(pollAutomationStatus, 5000);
     console.log('Lumagen Web UI initialized');
 });
