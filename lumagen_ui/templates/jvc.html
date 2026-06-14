@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JVC D-ILA Projector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <nav class="page-nav">
+            <a href="/" class="nav-tab">Lumagen</a>
+            <a href="/jvc" class="nav-tab active">JVC Projector</a>
+        </nav>
+        <header>
+            <h1>JVC D-ILA Projector</h1>
+            <p class="subtitle">
+                {% if jvc_host %}Network Control · {{ jvc_host }}{% else %}JVC_HOST not configured{% endif %}
+            </p>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div id="status-indicator" class="status-indicator"></div>
+            <span id="status-text">Ready</span>
+        </div>
+
+        <div class="dashboard-grid">
+
+            <!-- Power -->
+            <div class="control-card span-2">
+                <h2>Power</h2>
+                <div class="power-section">
+                    <button class="btn btn-power btn-power-on" onclick="jvcPower('on')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                            <line x1="12" y1="2" x2="12" y2="12"/>
+                        </svg>
+                        ON
+                    </button>
+                    <button class="btn btn-power btn-power-off" onclick="jvcPower('off')">
+                        <!-- Power off: full power symbol in red -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                            <line x1="12" y1="2" x2="12" y2="12"/>
+                        </svg>
+                        OFF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Input -->
+            <div class="control-card">
+                <h2>Input</h2>
+                <div class="button-grid">
+                    <button class="btn btn-input" onclick="jvcInput('hdmi1')">HDMI 1</button>
+                    <button class="btn btn-input" onclick="jvcInput('hdmi2')">HDMI 2</button>
+                </div>
+            </div>
+
+            <!-- Standard Picture Modes -->
+            <div class="control-card span-2">
+                <h2>Picture Mode</h2>
+                <div class="button-grid">
+                    <button class="btn btn-picmode" onclick="jvcPictureMode('film')">Film</button>
+                    <button class="btn btn-picmode" onclick="jvcPictureMode('cinema')">Cinema</button>
+                    <button class="btn btn-picmode" onclick="jvcPictureMode('natural')">Natural</button>
+                    <button class="btn btn-picmode" onclick="jvcPictureMode('hdr')">HDR</button>
+                    <button class="btn btn-picmode" onclick="jvcPictureMode('thx')">THX</button>
+                    <button class="btn btn-picmode" onclick="jvcPictureMode('hlg')">HLG</button>
+                    <button class="btn btn-picmode" onclick="jvcPictureMode('frame_adapt_hdr')">Frame Adapt</button>
+                </div>
+            </div>
+
+            <!-- User Picture Modes -->
+            <div class="control-card">
+                <h2>User Modes</h2>
+                <div class="button-grid">
+                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user1')">User 1</button>
+                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user2')">User 2</button>
+                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user3')">User 3</button>
+                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user4')">User 4</button>
+                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user5')">User 5</button>
+                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user6')">User 6</button>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="control-card span-3">
+                <h2>Status Information</h2>
+                <div style="margin-bottom: 10px;">
+                    <button class="btn btn-info" onclick="jvcStatus()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Get Status
+                    </button>
+                </div>
+                <div id="status-display" class="status-display">Click "Get Status" to query the projector</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='jvc_script.js') }}"></script>
+</body>
+</html>
