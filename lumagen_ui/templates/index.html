@@ -3,118 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumagen Radiance Pro Control</title>
+    <title>Lumagen Radiance Pro</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
+        <nav class="page-nav">
+            <a href="/" class="nav-tab active">Lumagen</a>
+            <a href="/jvc" class="nav-tab">JVC Projector</a>
+        </nav>
         <header>
-            <h1>🎬 Lumagen Radiance Pro</h1>
+            <h1>Lumagen Radiance Pro</h1>
             <p class="subtitle">Network Control Interface</p>
         </header>
 
         <!-- Status Bar -->
         <div class="status-bar">
-            <div id="status-indicator" class="status-indicator">●</div>
+            <div id="status-indicator" class="status-indicator"></div>
             <span id="status-text">Ready</span>
         </div>
 
-        <!-- Power Control -->
-        <section class="control-section">
-            <h2>Power</h2>
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="powerControl('on')">Power On</button>
-                <button class="btn btn-secondary" onclick="powerControl('standby')">Standby</button>
-            </div>
-        </section>
+        <div class="dashboard-grid">
 
-        <!-- Input Selection -->
-        <section class="control-section">
-            <h2>Input Selection</h2>
-            <div class="button-grid">
-                <button class="btn btn-input" onclick="selectInput(1)">Input 1</button>
-                <button class="btn btn-input" onclick="selectInput(2)">Input 2</button>
-                <button class="btn btn-input" onclick="selectInput(3)">Input 3</button>
-                <button class="btn btn-input" onclick="selectInput(4)">Input 4</button>
-                <button class="btn btn-input" onclick="selectInput(5)">Input 5</button>
-                <button class="btn btn-input" onclick="selectInput(6)">Input 6</button>
-                <button class="btn btn-input" onclick="selectInput(7)">Input 7</button>
-                <button class="btn btn-input" onclick="selectInput(8)">Input 8</button>
+            <!-- Power Control -->
+            <div class="control-card span-2">
+                <h2>Power</h2>
+                <div class="power-section">
+                    <button class="btn btn-power btn-power-on" onclick="powerControl('on')">
+                        <!-- IEC power-on symbol -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                            <line x1="12" y1="2" x2="12" y2="12"/>
+                        </svg>
+                        ON
+                    </button>
+                    <button class="btn btn-power btn-power-off" onclick="powerControl('standby')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                            <line x1="12" y1="2" x2="12" y2="12"/>
+                        </svg>
+                        OFF
+                    </button>
+                </div>
             </div>
-        </section>
 
-        <!-- Memory Selection -->
-        <section class="control-section">
-            <h2>Configuration Memory</h2>
-            <div class="button-group">
-                <button class="btn btn-memory" onclick="selectMemory('A')">MEM A</button>
-                <button class="btn btn-memory" onclick="selectMemory('B')">MEM B</button>
-                <button class="btn btn-memory" onclick="selectMemory('C')">MEM C</button>
-                <button class="btn btn-memory" onclick="selectMemory('D')">MEM D</button>
+            <!-- Memory Selection -->
+            <div class="control-card">
+                <h2>Configuration Memory</h2>
+                <div class="button-grid">
+                    <button class="btn btn-memory" onclick="selectMemory('A')">MEM A</button>
+                    <button class="btn btn-memory" onclick="selectMemory('B')">MEM B</button>
+                    <button class="btn btn-memory" onclick="selectMemory('C')">MEM C</button>
+                    <button class="btn btn-memory" onclick="selectMemory('D')">MEM D</button>
+                </div>
             </div>
-        </section>
 
-        <!-- Aspect Ratio -->
-        <section class="control-section">
-            <h2>Aspect Ratio</h2>
-            <div class="button-grid">
-                <button class="btn btn-aspect" onclick="setAspect('4:3')">4:3</button>
-                <button class="btn btn-aspect" onclick="setAspect('lbox')">LBOX</button>
-                <button class="btn btn-aspect" onclick="setAspect('16:9')">16:9</button>
-                <button class="btn btn-aspect" onclick="setAspect('1.85')">1.85</button>
-                <button class="btn btn-aspect" onclick="setAspect('2.35')">2.35</button>
-                <button class="btn btn-aspect" onclick="setAspect('nls')">NLS</button>
+            <!-- Input Selection -->
+            <div class="control-card span-2">
+                <h2>Input Selection</h2>
+                <div class="button-grid">
+                    <button class="btn btn-input" onclick="selectInput(1)">Input 1</button>
+                    <button class="btn btn-input" onclick="selectInput(2)">Input 2</button>
+                    <button class="btn btn-input" onclick="selectInput(3)">Input 3</button>
+                    <button class="btn btn-input" onclick="selectInput(4)">Input 4</button>
+                    <button class="btn btn-input" onclick="selectInput(5)">Input 5</button>
+                    <button class="btn btn-input" onclick="selectInput(6)">Input 6</button>
+                    <button class="btn btn-input" onclick="selectInput(7)">Input 7</button>
+                    <button class="btn btn-input" onclick="selectInput(8)">Input 8</button>
+                </div>
             </div>
-        </section>
 
-        <!-- Zoom Control -->
-        <section class="control-section">
-            <h2>Zoom</h2>
-            <div class="button-group">
-                <button class="btn btn-zoom" onclick="zoomControl('in')">Zoom In (+)</button>
-                <button class="btn btn-zoom" onclick="zoomControl('out')">Zoom Out (−)</button>
+            <!-- Zoom Control -->
+            <div class="control-card">
+                <h2>Zoom</h2>
+                <div class="button-grid">
+                    <button class="btn btn-zoom" onclick="zoomControl('in')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Zoom In
+                    </button>
+                    <button class="btn btn-zoom" onclick="zoomControl('out')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Zoom Out
+                    </button>
+                </div>
             </div>
-        </section>
 
-        <!-- Output Mode -->
-        <section class="control-section">
-            <h2>Output Resolution</h2>
-            <div class="button-grid">
-                <button class="btn btn-output" onclick="setOutput('auto')">Auto</button>
-                <button class="btn btn-output" onclick="setOutput('480p')">480p</button>
-                <button class="btn btn-output" onclick="setOutput('720p')">720p</button>
-                <button class="btn btn-output" onclick="setOutput('1080p24')">1080p24</button>
-                <button class="btn btn-output" onclick="setOutput('1080p')">1080p60</button>
-                <button class="btn btn-output" onclick="setOutput('4k24')">4K24</button>
-                <button class="btn btn-output" onclick="setOutput('4k60')">4K60</button>
+            <!-- Aspect Ratio -->
+            <div class="control-card span-2">
+                <h2>Aspect Ratio</h2>
+                <div class="button-grid">
+                    <button class="btn btn-aspect" onclick="setAspect('4:3')">4:3</button>
+                    <button class="btn btn-aspect" onclick="setAspect('lbox')">LBOX</button>
+                    <button class="btn btn-aspect" onclick="setAspect('16:9')">16:9</button>
+                    <button class="btn btn-aspect" onclick="setAspect('1.85')">1.85</button>
+                    <button class="btn btn-aspect" onclick="setAspect('2.35')">2.35</button>
+                    <button class="btn btn-aspect" onclick="setAspect('nls')">NLS</button>
+                </div>
             </div>
-        </section>
 
-        <!-- Test Patterns -->
-        <section class="control-section">
-            <h2>Test Patterns</h2>
-            <div class="button-group">
-                <button class="btn btn-test" onclick="testPattern('contrast')">Contrast Pattern</button>
-                <button class="btn btn-test" onclick="testPattern('off')">Pattern Off</button>
+            <!-- Test Patterns -->
+            <div class="control-card">
+                <h2>Test Patterns</h2>
+                <div class="button-grid">
+                    <button class="btn btn-test" onclick="testPattern('contrast')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>
+                            <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>
+                        </svg>
+                        Contrast
+                    </button>
+                    <button class="btn btn-test" onclick="testPattern('off')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        Pat. Off
+                    </button>
+                </div>
             </div>
-        </section>
 
-        <!-- Save Config -->
-        <section class="control-section">
-            <h2>Configuration</h2>
-            <div class="button-group">
-                <button class="btn btn-save" onclick="saveConfig()">💾 Save Configuration</button>
-                <button class="btn btn-info" onclick="getStatus()">📊 Get Status</button>
+            <!-- Output Resolution -->
+            <div class="control-card span-2">
+                <h2>Output Resolution</h2>
+                <div class="button-grid">
+                    <button class="btn btn-output" onclick="setOutput('auto')">Auto</button>
+                    <button class="btn btn-output" onclick="setOutput('480p')">480p</button>
+                    <button class="btn btn-output" onclick="setOutput('720p')">720p</button>
+                    <button class="btn btn-output" onclick="setOutput('1080p24')">1080p24</button>
+                    <button class="btn btn-output" onclick="setOutput('1080p')">1080p60</button>
+                    <button class="btn btn-output" onclick="setOutput('4k24')">4K24</button>
+                    <button class="btn btn-output" onclick="setOutput('4k60')">4K60</button>
+                </div>
             </div>
-        </section>
 
-        <!-- Status Display -->
-        <section class="control-section">
-            <h2>Status Information</h2>
-            <div id="status-display" class="status-display">
-                Click "Get Status" to view Lumagen information
+            <!-- Save / Info -->
+            <div class="control-card">
+                <h2>Configuration</h2>
+                <div class="button-grid">
+                    <button class="btn btn-save" onclick="saveConfig()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
+                        </svg>
+                        Save
+                    </button>
+                    <button class="btn btn-info" onclick="getStatus()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        Status
+                    </button>
+                </div>
             </div>
-        </section>
+
+            <!-- Status Display -->
+            <div class="control-card span-3">
+                <h2>Status Information</h2>
+                <div id="status-display" class="status-display">Click "Get Status" to view Lumagen information</div>
+            </div>
+
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

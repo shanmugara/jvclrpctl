@@ -74,3 +74,7 @@ jvclrpctl/
 ## lumagen_ui (separate Flask app)
 
 `lumagen_ui/` is an independent Flask web UI for Lumagen-only control (no JVC). It runs on port 5001 and has its own `requirements.txt`, `install.sh`, and systemd service. The serial port is configured via the `LUMAGEN_PORT` env var (default `/dev/ttyUSB1`).
+
+## Control command reference docs
+
+`/docs/2018_ILA-FPJ_Ext_Command_List_v1.2.pdf` contains JVC command references. `docs/ILAFPJ2021_LANconnection_spec_EN.pdf` contains JVC LAN connections specific references. `docs/Tip0011_RS232CommandInterface_111023.pdf` contains the Lumagen remote connad references.

@@ -20,9 +20,10 @@ function showToast(message, type = 'info') {
 function updateStatus(message, success = true) {
     const statusText = document.getElementById('status-text');
     const statusIndicator = document.getElementById('status-indicator');
-    
+    const color = success ? '#4CAF50' : '#f44336';
     statusText.textContent = message;
-    statusIndicator.style.color = success ? '#4CAF50' : '#f44336';
+    statusIndicator.style.backgroundColor = color;
+    statusIndicator.style.boxShadow = `0 0 8px ${color}`;
 }
 
 // Generic API call function
