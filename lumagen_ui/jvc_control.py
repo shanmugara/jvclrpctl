@@ -34,7 +34,7 @@ class JVCControl:
     }
     _MODE_BY_VALUE = {v[0]: k for k, v in PICTURE_MODES.items()}
 
-    def __init__(self, host: str, port: int = 20554, timeout: float = 10.0):
+    def __init__(self, host: str, port: int = 20554, timeout: float = 5.0):
         self.host = host
         self.port = port
         self.timeout = timeout

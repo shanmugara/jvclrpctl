@@ -106,14 +106,16 @@ Environment="LUMAGEN_PORT=$LUMAGEN_PORT"
 $JVC_ENV_LINE
 ExecStart=$VENV/bin/gunicorn \\
     --workers 1 \\
+    --worker-class gthread \\
+    --threads 4 \\
     --bind 0.0.0.0:$UI_PORT \\
     --timeout 30 \\
-    --access-logfile - \\
+    --access-logfile /dev/stderr \\
     app:app
 Restart=always
 RestartSec=10
 StandardOutput=tty
-StandardError=tty
+StandardError=journal
 TTYPath=/dev/tty1
 TTYReset=no
 TTYVHangup=no
