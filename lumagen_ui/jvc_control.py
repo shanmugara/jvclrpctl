@@ -73,17 +73,21 @@ class JVCControl:
     def _reference(self, cmd: bytes) -> bytes:
         s = self._connect()
         try:
-            s.sendall(self._REF + self._UNIT + cmd + self._END)
-            resp = s.recv(1024)
-            ack = self._ACK + self._UNIT + cmd[:2] + self._END
-            ack_len = len(ack)
-            data = resp[ack_len:] if (resp.startswith(ack) and len(resp) > ack_len) else s.recv(1024)
-            hdr = self._RESP + self._UNIT + cmd[:2]
-            if data.startswith(hdr) and data.endswith(self._END):
-                return data[len(hdr):-1]
-            return data
+            return self._reference_on(s, cmd)
         finally:
             s.close()
+
+    def _reference_on(self, s: socket.socket, cmd: bytes) -> bytes:
+        """Send a reference query on an already-authenticated socket."""
+        s.sendall(self._REF + self._UNIT + cmd + self._END)
+        resp = s.recv(1024)
+        ack = self._ACK + self._UNIT + cmd[:2] + self._END
+        ack_len = len(ack)
+        data = resp[ack_len:] if (resp.startswith(ack) and len(resp) > ack_len) else s.recv(1024)
+        hdr = self._RESP + self._UNIT + cmd[:2]
+        if data.startswith(hdr) and data.endswith(self._END):
+            return data[len(hdr):-1]
+        return data
 
     # ── Power ──────────────────────────────────────────────────────────────
     def power_on(self) -> bool:
@@ -123,8 +127,19 @@ class JVCControl:
 
     # ── Combined Status ────────────────────────────────────────────────────
     def get_status(self) -> dict:
+        # Use a single TCP connection for all three queries — rapid reconnects
+        # cause the projector to return connection refused on the 2nd/3rd attempt.
+        s = self._connect()
+        try:
+            r_pw = self._reference_on(s, b'PW')
+            r_ip = self._reference_on(s, b'IP')
+            r_pm = self._reference_on(s, b'PMPM')
+        finally:
+            s.close()
+
+        key = self._MODE_BY_VALUE.get(r_pm[:2] if r_pm else b'')
         return {
-            'power':        self.get_power_status(),
-            'input':        self.get_current_input(),
-            'picture_mode': self.get_picture_mode(),
+            'power':        {b'0': 'Standby', b'1': 'On', b'2': 'Cooling', b'3': 'Warming'}.get(r_pw, 'Unknown'),
+            'input':        {b'6': 'HDMI 1', b'7': 'HDMI 2'}.get(r_ip, 'Unknown'),
+            'picture_mode': self.PICTURE_MODES[key][1] if key else 'Unknown',
         }
