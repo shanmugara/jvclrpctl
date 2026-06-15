@@ -110,7 +110,6 @@ ExecStart=$VENV/bin/gunicorn \\
     --threads 4 \\
     --bind 0.0.0.0:$UI_PORT \\
     --timeout 30 \\
-    --access-logfile /dev/stderr \\
     app:app
 Restart=always
 RestartSec=10
