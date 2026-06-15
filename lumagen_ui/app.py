@@ -60,25 +60,29 @@ class AutomationManager:
         self._interval = interval
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
+        self._lock = threading.Lock()   # guards start/stop against concurrent calls
 
     @property
     def running(self) -> bool:
         return self._thread is not None and self._thread.is_alive()
 
     def start(self):
-        if self.running:
-            return
-        self._stop.clear()
-        self._thread = threading.Thread(target=self._loop, daemon=True, name="hdr-automation")
-        self._thread.start()
+        with self._lock:
+            if self.running:
+                return
+            self._stop.clear()
+            self._thread = threading.Thread(target=self._loop, daemon=True, name="hdr-automation")
+            self._thread.start()
         logger.info("HDR automation started")
 
     def stop(self):
-        if not self.running:
-            return
-        self._stop.set()
-        self._thread.join(timeout=15)
-        self._thread = None
+        with self._lock:
+            if not self.running:
+                return
+            self._stop.set()
+            thread = self._thread
+            self._thread = None
+        thread.join(timeout=15)   # join outside lock so start() can proceed if needed
         logger.info("HDR automation stopped")
 
     def _loop(self):
