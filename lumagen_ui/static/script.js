@@ -51,6 +51,12 @@ async function callAPI(endpoint, method = 'POST') {
 }
 
 // Power Control
+function confirmPowerControl(action) {
+    const label = action === 'on' ? 'Power ON' : 'Standby';
+    if (!confirm(`${label} the Lumagen Radiance?`)) return;
+    powerControl(action);
+}
+
 async function powerControl(action) {
     const actionText = action === 'on' ? 'Powering On' : 'Entering Standby';
     updateStatus(actionText, true);
