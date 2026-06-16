@@ -31,6 +31,8 @@ Python library for controlling JVC D-ILA projectors (TCP/IP) and Lumagen Radianc
 
 ![Lumagen Radiance Pro Web UI](web_ui.png)
 
+![JVC NX Web UI](jvc_ui.png)
+
 **Lumagen page** (`/`): power, input selection, configuration memory, aspect ratio, zoom, output resolution, test patterns, save config, status, HDR automation start/stop.
 
 **JVC page** (`/jvc`): power, HDMI input, picture mode (Film / Cinema / Natural / HDR / THX / HLG / Frame Adapt / User 1–6), projector status.
