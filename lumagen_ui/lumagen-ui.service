@@ -1,14 +1,19 @@
 [Unit]
-Description=Lumagen Radiance Pro Web UI
+Description=Lumagen + JVC Web Control UI
 After=network.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/jvclrpctl/lumagen_ui
-Environment="LUMAGEN_PORT=/dev/ttyUSB1"
-Environment="PATH=/home/pi/jvclrpctl/venv/bin"
-ExecStart=/home/pi/jvclrpctl/venv/bin/python /home/pi/jvclrpctl/lumagen_ui/app.py
+User=__USER__
+WorkingDirectory=__INSTALL_DIR__
+Environment="LUMAGEN_PORT=__LUMAGEN_PORT__"
+Environment="JVC_HOST=__JVC_HOST__"
+ExecStart=__VENV__/bin/gunicorn \
+    --workers 1 \
+    --bind 0.0.0.0:5001 \
+    --timeout 30 \
+    --access-logfile - \
+    app:app
 Restart=always
 RestartSec=10
 StandardOutput=journal

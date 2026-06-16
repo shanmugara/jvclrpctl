@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JVC D-ILA Projector</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4">
 </head>
 <body>
     <div class="container">
@@ -31,15 +31,14 @@
             <div class="control-card span-2">
                 <h2>Power</h2>
                 <div class="power-section">
-                    <button class="btn btn-power btn-power-on" onclick="jvcPower('on')">
+                    <button class="btn btn-power btn-power-on" onclick="confirmPower('on')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
                             <line x1="12" y1="2" x2="12" y2="12"/>
                         </svg>
                         ON
                     </button>
-                    <button class="btn btn-power btn-power-off" onclick="jvcPower('off')">
-                        <!-- Power off: full power symbol in red -->
+                    <button class="btn btn-power btn-power-off" onclick="confirmPower('off')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
                             <line x1="12" y1="2" x2="12" y2="12"/>
@@ -104,6 +103,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='jvc_script.js') }}"></script>
+    <script src="{{ url_for('static', filename='jvc_script.js') }}?v=4"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 import sys
 import os
+import contextlib
 from time import sleep
 
 # Add parent directory to path so we can import jvclrpctl
@@ -25,8 +26,9 @@ JVC_PICTURE_MODE_SDR = PictureMode.USER1  # Picture mode to use when SDR is dete
 
 class JVC_LRP_Runner:
     """Runner class for JVC LRP testing"""
-    
-    def __init__(self, projector_ip=PROJECTOR_IP, projector_port=PROJECTOR_PORT, lumagen_port=LUMAGEN_PORT):
+
+    def __init__(self, projector_ip=PROJECTOR_IP, projector_port=PROJECTOR_PORT,
+                 lumagen_port=LUMAGEN_PORT, lumagen_lock=None, lumagen_control=None):
         self.projector_ip = projector_ip
         self.projector_port = projector_port
         self.lumagen_port = lumagen_port
@@ -35,6 +37,13 @@ class JVC_LRP_Runner:
         self.lumagen = None
         self.lumagen_commands = None
         self.lumagen_input_mode = LRPInputModes.NA
+        # Optional threading.Lock for shared serial port access (used when embedded
+        # in the Flask app). When None (standalone), a no-op context is used.
+        self._lumagen_lock = lumagen_lock if lumagen_lock is not None else contextlib.nullcontext()
+        # Optional LumagenControl from the Flask app. When set, the runner reuses
+        # this object for serial access instead of creating its own LumagenRadiance,
+        # so only one serial connection ever opens /dev/ttyUSB0.
+        self._lumagen_control = lumagen_control
 
     def connect_lumagen(self):
         """Connect to the Lumagen and initialize commands"""
@@ -78,6 +87,22 @@ class JVC_LRP_Runner:
         if self.projector:
             self.projector.disconnect()
             debug("Disconnected from projector")
+
+    def _hdr_via_control(self) -> LRPInputModes:
+        """Query ZQI52 through the shared LumagenControl (embedded mode only)."""
+        try:
+            response = self._lumagen_control.send_command("ZQI52")
+            parts = response.split(',')
+            if parts and not parts[0].lstrip('-').isdigit():
+                parts = parts[1:]
+            if len(parts) >= 4:
+                v = int(parts[0])
+                return LRPInputModes.HDR if v == 1 else LRPInputModes.SDR
+            error(f"Unexpected ZQI52 response: {response!r}")
+            return LRPInputModes.ERR
+        except Exception as e:
+            error(f"Failed to get HDR status: {e}")
+            return LRPInputModes.ERR
 
     def get_lumagen_input_mode(self):
         """Get current Lumagen input mode"""
@@ -154,27 +179,39 @@ class JVC_LRP_Runner:
             return False
 
     def run(self):
-        """Run the main test sequence"""
+        """Run the main polling cycle."""
+        current_input_mode = None
         try:
-            # Connect to Lumagen
-            if not self.connect_lumagen():
-                error("Failed to connect to Lumagen. Aborting run.")
-                return
-            # Get current HDR mode from Lumagen
-            debug("Checking Lumagen input status...")
-            current_input_mode = self.get_lumagen_input_mode()
+            # ── Lumagen phase (lock held only here) ───────────────────────
+            with self._lumagen_lock:
+                if self._lumagen_control is not None:
+                    # Embedded: reuse the Flask app's LumagenControl so only
+                    # one serial object ever opens /dev/ttyUSB0.
+                    debug("Checking Lumagen input status (shared control)...")
+                    current_input_mode = self._hdr_via_control()
+                else:
+                    # Standalone: create our own LumagenRadiance connection.
+                    if not self.connect_lumagen():
+                        error("Failed to connect to Lumagen. Aborting run.")
+                        return
+                    debug("Checking Lumagen input status...")
+                    current_input_mode = self.get_lumagen_input_mode()
+                    if self.lumagen:
+                        self.lumagen.disconnect()
+                        self.lumagen = None
 
+            # ── Evaluation (no devices held) ──────────────────────────────
             debug(f"Current Lumagen input mode: {current_input_mode.name}")
             debug(f"Last known Lumagen input mode: {self.lumagen_input_mode.name}")
 
             if current_input_mode == LRPInputModes.ERR:
                 error("Error retrieving Lumagen input mode. Skipping this cycle.")
                 return
-            
+
             if current_input_mode == self.lumagen_input_mode:
                 debug("Lumagen input status has not changed since last check.")
                 return
-            
+
             if self.lumagen_input_mode == LRPInputModes.NA:
                 _initial_run = True
                 debug("Initial run detected. Verifying current JVC picture mode...")
@@ -183,10 +220,6 @@ class JVC_LRP_Runner:
                 except Exception as e:
                     error(f"Could not read current JVC picture mode: {e}. Skipping this cycle.")
                     return
-                # if current_jvc_mode is None:
-                #     error("Could not read current JVC picture mode. Skipping this cycle.")
-                #     return
-                # else:
                 debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
                 if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
                     debug("JVC picture mode matches for HDR input mode. No change needed.")
@@ -200,44 +233,35 @@ class JVC_LRP_Runner:
                     return
             else:
                 _initial_run = False
-            # Set JVC picture mode based on HDR status
-            
+
+            # ── JVC phase (lock NOT held; serial port free) ───────────────
             if current_input_mode == LRPInputModes.HDR:
                 debug("HDR input detected. Setting JVC picture mode to HDR...")
                 info("HDR → USER3")
                 try:
-                    # set_jvc_picture_mode raises if set_mode could not verify, so a
-                    # clean return means the mode is set and verified on the live
-                    # connection. Avoid a redundant reconnect-confirm here: the
-                    # projector refuses TCP connects for a moment after a switch.
                     self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR, _initial_run)
                     debug("updating last known input mode to HDR")
                     self.lumagen_input_mode = current_input_mode
                 except Exception as e:
                     error(f"Failed to set JVC picture mode to HDR: {e}")
-
             elif current_input_mode == LRPInputModes.SDR:
                 debug("SDR input detected. Setting JVC picture mode to SDR...")
                 info("SDR → USER1")
                 try:
-                    # set_mode already verifies on the live connection; skip the
-                    # redundant reconnect-confirm (projector refuses TCP connects
-                    # briefly after a switch).
-                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR, _initial_run)  # USER1 for SDR
+                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR, _initial_run)
                     debug("updating last known input mode to SDR")
                     self.lumagen_input_mode = current_input_mode
                 except Exception as e:
                     error(f"Failed to set JVC picture mode to SDR: {e}")
             else:
                 debug(f"Unknown Lumagen input mode: {current_input_mode}. No action taken.")
-                
+
             debug("Run completed successfully!")
-            
+
         except Exception as e:
             error(f"Error during run: {e}")
         finally:
-            # Always disconnect at the end
-            self.disconnect()
+            self.disconnect()  # clean up projector if still connected
 
 
 def poll(runner: JVC_LRP_Runner, interval=POLLING_INTERVAL):

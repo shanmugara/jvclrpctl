@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumagen Radiance Pro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=3">
 </head>
 <body>
     <div class="container">
@@ -29,7 +29,7 @@
             <div class="control-card span-2">
                 <h2>Power</h2>
                 <div class="power-section">
-                    <button class="btn btn-power btn-power-on" onclick="powerControl('on')">
+                    <button class="btn btn-power btn-power-on" onclick="confirmPowerControl('on')">
                         <!-- IEC power-on symbol -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
@@ -37,7 +37,7 @@
                         </svg>
                         ON
                     </button>
-                    <button class="btn btn-power btn-power-off" onclick="powerControl('standby')">
+                    <button class="btn btn-power btn-power-off" onclick="confirmPowerControl('standby')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
                             <line x1="12" y1="2" x2="12" y2="12"/>
@@ -161,15 +161,29 @@
                 </div>
             </div>
 
+            <!-- HDR Automation -->
+            <div class="control-card span-3" id="automation-card">
+                <h2>HDR Automation</h2>
+                <div class="automation-row">
+                    <div class="automation-state">
+                        <div id="automation-indicator" class="automation-indicator"></div>
+                        <span id="automation-status-text">Checking…</span>
+                        <span class="automation-content" id="automation-content"></span>
+                    </div>
+                    <button class="btn btn-automation" id="automation-toggle-btn"
+                            onclick="toggleAutomation()">—</button>
+                </div>
+            </div>
+
             <!-- Status Display -->
             <div class="control-card span-3">
                 <h2>Status Information</h2>
-                <div id="status-display" class="status-display">Click "Get Status" to view Lumagen information</div>
+                <div id="status-display" class="status-display">Click "Status" to view Lumagen information</div>
             </div>
 
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=4"></script>
 </body>
 </html>

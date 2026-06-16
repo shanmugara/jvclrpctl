@@ -1,5 +1,11 @@
 // JVC Projector Web UI
 
+function confirmPower(action) {
+    const label = action === 'on' ? 'Power ON' : 'Power OFF';
+    if (!window.confirm(`${label} the JVC projector?`)) return;
+    jvcPower(action);
+}
+
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
