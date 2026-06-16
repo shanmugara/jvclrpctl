@@ -1,190 +1,161 @@
-# Lumagen Radiance Pro Web UI
+# Lumagen + JVC Web UI
 
-A Flask-based web interface for controlling the Lumagen Radiance Pro video processor over RS232. Designed to run on Raspberry Pi and accessible via browser on your network.
+Unified Flask web control panel for the Lumagen Radiance Pro (USB serial) and JVC D-ILA projector (TCP/IP). Designed to run as a systemd service on Raspberry Pi and be accessed from any browser on the local network, including phones and tablets.
 
-## Features
+![Web UI](../web_ui.png)
 
-- **Power Control**: Turn on/standby
-- **Input Selection**: Switch between inputs 1-10
-- **Memory Selection**: Choose configuration memories A, B, C, D
-- **Aspect Ratio**: Set input aspect (4:3, LBOX, 16:9, 1.85, 2.35, NLS)
-- **Zoom Control**: Zoom in/out
-- **Output Resolution**: Set output mode (480p, 720p, 1080p, 4K, Auto)
-- **Test Patterns**: Display and control test patterns
-- **Configuration**: Save current settings
-- **Status Display**: View current Lumagen status and info
+## Pages
 
-## Hardware Requirements
+### Lumagen (`/`)
+Power, input selection (1–8), configuration memory (A–D), aspect ratio, zoom, output resolution, test patterns, save config, Lumagen status, and HDR automation control.
 
-- Raspberry Pi (any model with USB ports)
-- USB-to-RS232 adapter
-- Lumagen Radiance Pro with RS232 connection
+### JVC Projector (`/jvc`)
+Power, HDMI input, picture mode (Film / Cinema / Natural / HDR / THX / HLG / Frame Adapt / User 1–6), and projector status query.
+
+**Both power buttons (ON and OFF) on both pages show a confirmation dialog before executing**, preventing accidental triggers.
+
+### HDR Automation
+A background thread polls the Lumagen every 30 seconds for HDR vs SDR content detection and automatically switches the JVC picture mode. Start/stop controls are on the Lumagen page.
+
+---
+
+## Requirements
+
+- Raspberry Pi (any model with USB)
+- USB-A to USB-B cable connecting Lumagen RS-232 port to Pi
+- JVC projector on the local network with network control enabled
+- Python 3.7+ with `flask`, `gunicorn`, `pyserial`
+
+---
 
 ## Installation
 
-### 1. Install Dependencies
+Use the provided install script:
 
 ```bash
-pip install flask pyserial
+cd lumagen_ui
+chmod +x install.sh
+./install.sh
 ```
 
-Or use the requirements file:
+The script prompts for install directory, venv path, serial port, and JVC IP, then installs the systemd service.
+
+### Manual setup
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure Serial Port
-
-Edit `app.py` to set your Lumagen serial port:
-
-```python
-LUMAGEN_PORT = '/dev/ttyUSB1'  # Change to your port
-```
-
-To find your serial port:
+Configure via environment variables:
 
 ```bash
-ls -l /dev/ttyUSB*
+export LUMAGEN_PORT=/dev/ttyUSB0   # default
+export JVC_HOST=192.168.100.240
 ```
 
-### 3. Set Permissions (Raspberry Pi)
-
-Add your user to the dialout group:
-
-```bash
-sudo usermod -a -G dialout $USER
-```
-
-Then log out and back in.
-
-### 4. Run the Application
+Run directly:
 
 ```bash
 python app.py
+# or with gunicorn (production)
+gunicorn --workers 1 --bind 0.0.0.0:5001 app:app
 ```
 
-The web UI will be available at:
-- Local: `http://localhost:5001`
-- Network: `http://<raspberry-pi-ip>:5001`
+Access at `http://<pi-ip>:5001`
 
-## Running as a Service
+---
 
-To run the web UI automatically on boot, create a systemd service:
+## systemd Service
 
-### 1. Create Service File
-
-```bash
-sudo nano /etc/systemd/system/lumagen-ui.service
-```
-
-Add this content (adjust paths):
-
-```ini
-[Unit]
-Description=Lumagen Web UI
-After=network.target
-
-[Service]
-Type=simple
-User=pi
-WorkingDirectory=/home/pi/jvclrpctl/lumagen_ui
-Environment="PATH=/home/pi/jvclrpctl/venv/bin"
-ExecStart=/home/pi/jvclrpctl/venv/bin/python /home/pi/jvclrpctl/lumagen_ui/app.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### 2. Enable and Start Service
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable lumagen-ui.service
-sudo systemctl start lumagen-ui.service
-```
-
-### 3. Check Status
+The install script creates `/etc/systemd/system/lumagen-ui.service` and enables it. Key commands:
 
 ```bash
 sudo systemctl status lumagen-ui.service
+sudo systemctl restart lumagen-ui.service
+sudo journalctl -u lumagen-ui.service -f      # live logs
 ```
 
-## Usage
+To enable debug logging, uncomment `Environment="DEBUG=true"` in the service file and restart.
 
-### Web Interface
+---
 
-1. Open your browser to `http://<raspberry-pi-ip>:5001`
-2. Use the buttons to control your Lumagen
-3. Click "Get Status" to view current configuration
-4. Changes take effect immediately
-5. Click "Save Configuration" to persist settings
+## Serial Port
 
-### Keyboard Shortcuts
+The Lumagen connects at **9600 baud** via USB serial. Find your port:
 
-- `1-8`: Select input 1-8
-- `A, B, C, D`: Select memory A, B, C, D
-- `+/=`: Zoom in
-- `-/_`: Zoom out
-- `Ctrl+S`: Save configuration
+```bash
+ls /dev/ttyUSB*
+```
+
+Add your user to the `dialout` group if permission is denied:
+
+```bash
+sudo usermod -a -G dialout $USER
+# then log out and back in
+```
+
+---
 
 ## API Endpoints
 
-The Flask app exposes a REST API:
+### Lumagen
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/power/<on\|standby>` | Power control |
+| POST | `/api/input/<1-8>` | Select input |
+| POST | `/api/memory/<A\|B\|C\|D>` | Select memory |
+| POST | `/api/aspect/<4:3\|lbox\|16:9\|1.85\|2.35\|nls>` | Aspect ratio |
+| POST | `/api/zoom/<in\|out>` | Zoom |
+| POST | `/api/output/<480p\|720p\|1080p24\|1080p\|4k24\|4k60\|auto>` | Output mode |
+| POST | `/api/test-pattern/<contrast\|off>` | Test pattern |
+| POST | `/api/save` | Save config |
+| GET  | `/api/status` | Lumagen status |
 
-- `POST /api/power/<on|standby>` - Power control
-- `POST /api/input/<1-10>` - Select input
-- `POST /api/memory/<A|B|C|D>` - Select memory
-- `POST /api/aspect/<4:3|lbox|16:9|1.85|2.35|nls>` - Set aspect ratio
-- `POST /api/zoom/<in|out>` - Zoom control
-- `POST /api/output/<480p|720p|1080p|4k24|4k60|auto>` - Set output mode
-- `POST /api/test-pattern/<contrast|off>` - Test patterns
-- `POST /api/save` - Save configuration
-- `GET /api/status` - Get Lumagen status
+### HDR Automation
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET  | `/api/automation/status` | Running state + current content mode |
+| POST | `/api/automation/start` | Start background polling |
+| POST | `/api/automation/stop` | Stop background polling |
 
-## Troubleshooting
+### JVC
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/jvc/power/<on\|off>` | Power on/off |
+| POST | `/api/jvc/input/<hdmi1\|hdmi2>` | Select input |
+| POST | `/api/jvc/picture-mode/<mode>` | Set picture mode |
+| GET  | `/api/jvc/status` | Power, input, picture mode |
 
-### Cannot connect to serial port
-
-1. Check port name: `ls -l /dev/ttyUSB*`
-2. Check permissions: `sudo usermod -a -G dialout $USER`
-3. Verify cable connection
-4. Check Lumagen RS232 settings (115200 baud)
-
-### Web UI not accessible on network
-
-1. Check firewall: `sudo ufw allow 5001/tcp`
-2. Verify Pi IP: `hostname -I`
-3. Ensure app.py has `host='0.0.0.0'`
-
-### Commands not working
-
-1. Check Lumagen is powered on
-2. Verify RS232 cable is properly connected
-3. Check baud rate matches Lumagen settings (default 115200)
-4. View logs: `sudo journalctl -u lumagen-ui.service -f`
+---
 
 ## Architecture
 
-- `app.py`: Flask web server with REST API
-- `lumagen_control.py`: RS232 communication layer
-- `templates/index.html`: Web UI interface
-- `static/style.css`: UI styling
-- `static/script.js`: Frontend JavaScript for API calls
+```
+lumagen_ui/
+├── app.py               # Flask app + all API routes + AutomationManager
+├── lumagen_control.py   # Lumagen serial command wrapper
+├── jvc_control.py       # JVC TCP command wrapper
+├── lumagen-ui.service   # systemd service template
+├── install.sh / uninstall.sh
+├── templates/
+│   ├── index.html       # Lumagen control page
+│   └── jvc.html         # JVC control page
+└── static/
+    ├── style.css        # Shared dark theme
+    ├── script.js        # Lumagen page JS
+    └── jvc_script.js    # JVC page JS
+```
 
-## Integration with jvclrpctl
+A single serial lock (`lumagen_lock`) serialises all Lumagen serial access between the automation background thread and Flask request handlers, preventing port conflicts.
 
-This web UI is **separate** from the main jvclrpctl automation. Both can run simultaneously:
+---
 
-- **jvclrpctl**: Automated HDR/SDR detection and JVC picture mode switching
-- **lumagen_ui**: Manual web-based control of Lumagen settings
+## Keyboard Shortcuts (Lumagen page)
 
-They use different serial ports:
-- jvclrpctl: `/dev/ttyUSB0` (Lumagen status monitoring)
-- lumagen_ui: `/dev/ttyUSB1` (Lumagen control)
-
-## License
-
-Same as jvclrpctl project.
+| Key | Action |
+|-----|--------|
+| `1`–`8` | Select input |
+| `A`–`D` | Select memory |
+| `+` / `=` | Zoom in |
+| `-` / `_` | Zoom out |
+| `Ctrl+S` | Save config |
