@@ -1,61 +1,34 @@
 // JVC Projector Web UI
 
-const HOLD_DURATION = 3000;
+let _pendingPowerAction = null;
 
-function isTouchDevice() {
-    return (
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia('(any-pointer: coarse)').matches
-    );
+function confirmPower(action) {
+    _pendingPowerAction = action;
+    const isOn = action === 'on';
+    document.getElementById('modal-icon').textContent    = isOn ? '⏻' : '⏼';
+    document.getElementById('modal-icon').className      = 'modal-icon ' + (isOn ? 'modal-icon-on' : 'modal-icon-off');
+    document.getElementById('modal-title').textContent   = isOn ? 'Power On Projector?' : 'Power Off Projector?';
+    document.getElementById('modal-body').textContent    = isOn
+        ? 'This will power on the JVC projector. Continue?'
+        : 'This will power off the JVC projector. Continue?';
+    document.getElementById('modal-confirm').className   = 'btn modal-btn-confirm ' + (isOn ? 'modal-confirm-on' : 'modal-confirm-off');
+    document.getElementById('power-modal').classList.add('modal-visible');
 }
 
-function setupLongPress(button, action) {
-    let startTime = null;
-    let rafId = null;
-
-    function cancel() {
-        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-        startTime = null;
-        button.classList.remove('holding');
-        button.style.setProperty('--hold-progress', 0);
-    }
-
-    button.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        startTime = performance.now();
-        button.classList.add('holding');
-
-        function animate() {
-            const progress = Math.min((performance.now() - startTime) / HOLD_DURATION, 1);
-            button.style.setProperty('--hold-progress', progress);
-            if (progress < 1) {
-                rafId = requestAnimationFrame(animate);
-            } else {
-                cancel();
-                if (navigator.vibrate) navigator.vibrate(50);
-                action();
-            }
-        }
-        rafId = requestAnimationFrame(animate);
-    }, { passive: false });
-
-    button.addEventListener('touchend', cancel);
-    button.addEventListener('touchcancel', cancel);
+function closePowerModal() {
+    document.getElementById('power-modal').classList.remove('modal-visible');
+    _pendingPowerAction = null;
 }
 
-function initPowerButtons() {
-    const btnOn  = document.getElementById('btn-power-on');
-    const btnOff = document.getElementById('btn-power-off');
-    if (isTouchDevice()) {
-        document.getElementById('power-hold-hint').style.display = 'block';
-        setupLongPress(btnOn,  () => jvcPower('on'));
-        setupLongPress(btnOff, () => jvcPower('off'));
-    } else {
-        btnOn.addEventListener('click',  () => jvcPower('on'));
-        btnOff.addEventListener('click', () => jvcPower('off'));
-    }
+function modalConfirm() {
+    const action = _pendingPowerAction;
+    closePowerModal();
+    if (action) jvcPower(action);
 }
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePowerModal();
+});
 
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
@@ -137,7 +110,4 @@ async function jvcStatus() {
     }
 }
 
-window.addEventListener('load', () => {
-    updateStatus('Ready', true);
-    initPowerButtons();
-});
+window.addEventListener('load', () => updateStatus('Ready', true));
