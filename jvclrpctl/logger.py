@@ -97,8 +97,11 @@ class Logger:
         if self.enabled and level >= self.level:
             # Console output with colors
             formatted = self._format_message(prefix, color, message)
-            print(formatted, file=sys.stdout)
-            sys.stdout.flush()
+            try:
+                print(formatted, file=sys.stdout)
+                sys.stdout.flush()
+            except OSError:
+                pass  # stdout may be a tty that is not writable (e.g. no HDMI display)
             
             # File output without colors (if file logging is enabled)
             if self.file_logger is not None:

@@ -26,9 +26,9 @@ JVC_PICTURE_MODE_SDR = PictureMode.USER1  # Picture mode to use when SDR is dete
 
 class JVC_LRP_Runner:
     """Runner class for JVC LRP testing"""
-    
+
     def __init__(self, projector_ip=PROJECTOR_IP, projector_port=PROJECTOR_PORT,
-                 lumagen_port=LUMAGEN_PORT, lumagen_lock=None):
+                 lumagen_port=LUMAGEN_PORT, lumagen_lock=None, lumagen_control=None):
         self.projector_ip = projector_ip
         self.projector_port = projector_port
         self.lumagen_port = lumagen_port
@@ -40,6 +40,10 @@ class JVC_LRP_Runner:
         # Optional threading.Lock for shared serial port access (used when embedded
         # in the Flask app). When None (standalone), a no-op context is used.
         self._lumagen_lock = lumagen_lock if lumagen_lock is not None else contextlib.nullcontext()
+        # Optional LumagenControl from the Flask app. When set, the runner reuses
+        # this object for serial access instead of creating its own LumagenRadiance,
+        # so only one serial connection ever opens /dev/ttyUSB0.
+        self._lumagen_control = lumagen_control
 
     def connect_lumagen(self):
         """Connect to the Lumagen and initialize commands"""
@@ -83,6 +87,22 @@ class JVC_LRP_Runner:
         if self.projector:
             self.projector.disconnect()
             debug("Disconnected from projector")
+
+    def _hdr_via_control(self) -> LRPInputModes:
+        """Query ZQI52 through the shared LumagenControl (embedded mode only)."""
+        try:
+            response = self._lumagen_control.send_command("ZQI52")
+            parts = response.split(',')
+            if parts and not parts[0].lstrip('-').isdigit():
+                parts = parts[1:]
+            if len(parts) >= 4:
+                v = int(parts[0])
+                return LRPInputModes.HDR if v == 1 else LRPInputModes.SDR
+            error(f"Unexpected ZQI52 response: {response!r}")
+            return LRPInputModes.ERR
+        except Exception as e:
+            error(f"Failed to get HDR status: {e}")
+            return LRPInputModes.ERR
 
     def get_lumagen_input_mode(self):
         """Get current Lumagen input mode"""
@@ -164,15 +184,21 @@ class JVC_LRP_Runner:
         try:
             # ── Lumagen phase (lock held only here) ───────────────────────
             with self._lumagen_lock:
-                if not self.connect_lumagen():
-                    error("Failed to connect to Lumagen. Aborting run.")
-                    return
-                debug("Checking Lumagen input status...")
-                current_input_mode = self.get_lumagen_input_mode()
-                # Release the serial port before JVC operations / sleeps
-                if self.lumagen:
-                    self.lumagen.disconnect()
-                    self.lumagen = None
+                if self._lumagen_control is not None:
+                    # Embedded: reuse the Flask app's LumagenControl so only
+                    # one serial object ever opens /dev/ttyUSB0.
+                    debug("Checking Lumagen input status (shared control)...")
+                    current_input_mode = self._hdr_via_control()
+                else:
+                    # Standalone: create our own LumagenRadiance connection.
+                    if not self.connect_lumagen():
+                        error("Failed to connect to Lumagen. Aborting run.")
+                        return
+                    debug("Checking Lumagen input status...")
+                    current_input_mode = self.get_lumagen_input_mode()
+                    if self.lumagen:
+                        self.lumagen.disconnect()
+                        self.lumagen = None
 
             # ── Evaluation (no devices held) ──────────────────────────────
             debug(f"Current Lumagen input mode: {current_input_mode.name}")

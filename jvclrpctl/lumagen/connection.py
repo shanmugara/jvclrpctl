@@ -163,7 +163,7 @@ class LumagenRadiance:
             # For non-query commands, no response expected
             return b''
             
-        except serial.SerialException as e:
+        except (serial.SerialException, OSError) as e:
             raise LumagenCommandError(f"Serial communication error: {e}")
     
     def query(self, command: str) -> str:

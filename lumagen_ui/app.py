@@ -48,8 +48,9 @@ else:
 runner = JVC_LRP_Runner(
     projector_ip=JVC_HOST,
     lumagen_port=LUMAGEN_PORT,
-    lumagen_lock=lumagen_lock,   # shared lock — releases port before JVC ops
-)
+    lumagen_lock=lumagen_lock,      # shared lock — serialises all serial access
+    lumagen_control=lumagen,        # reuse Flask's LumagenControl; only one
+)                                   # serial object ever opens /dev/ttyUSB0
 
 
 class AutomationManager:
@@ -89,8 +90,8 @@ class AutomationManager:
         while not self._stop.is_set():
             try:
                 self._runner.run()
-            except Exception as e:
-                logger.error(f"Automation loop error: {e}")
+            except Exception:
+                logger.exception("Automation loop error")
             self._stop.wait(self._interval)
 
     def status(self) -> dict:
