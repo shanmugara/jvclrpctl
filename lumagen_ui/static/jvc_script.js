@@ -1,34 +1,10 @@
 // JVC Projector Web UI
 
-let _pendingPowerAction = null;
-
 function confirmPower(action) {
-    _pendingPowerAction = action;
-    const isOn = action === 'on';
-    document.getElementById('modal-icon').textContent    = isOn ? '⏻' : '⏼';
-    document.getElementById('modal-icon').className      = 'modal-icon ' + (isOn ? 'modal-icon-on' : 'modal-icon-off');
-    document.getElementById('modal-title').textContent   = isOn ? 'Power On Projector?' : 'Power Off Projector?';
-    document.getElementById('modal-body').textContent    = isOn
-        ? 'This will power on the JVC projector. Continue?'
-        : 'This will power off the JVC projector. Continue?';
-    document.getElementById('modal-confirm').className   = 'btn modal-btn-confirm ' + (isOn ? 'modal-confirm-on' : 'modal-confirm-off');
-    document.getElementById('power-modal').classList.add('modal-visible');
+    const label = action === 'on' ? 'Power ON' : 'Power OFF';
+    if (!window.confirm(`${label} the JVC projector?`)) return;
+    jvcPower(action);
 }
-
-function closePowerModal() {
-    document.getElementById('power-modal').classList.remove('modal-visible');
-    _pendingPowerAction = null;
-}
-
-function modalConfirm() {
-    const action = _pendingPowerAction;
-    closePowerModal();
-    if (action) jvcPower(action);
-}
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closePowerModal();
-});
 
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');

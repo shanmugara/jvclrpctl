@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JVC D-ILA Projector</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4">
 </head>
 <body>
     <div class="container">
@@ -103,19 +103,6 @@
         </div>
     </div>
 
-    <!-- Power confirmation modal -->
-    <div id="power-modal" class="modal-backdrop" onclick="closePowerModal()">
-        <div class="modal" onclick="event.stopPropagation()">
-            <div id="modal-icon" class="modal-icon"></div>
-            <h3 id="modal-title" class="modal-title"></h3>
-            <p id="modal-body" class="modal-body"></p>
-            <div class="modal-actions">
-                <button id="modal-confirm" class="btn modal-btn-confirm" onclick="modalConfirm()">Confirm</button>
-                <button class="btn modal-btn-cancel" onclick="closePowerModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='jvc_script.js') }}?v=3"></script>
+    <script src="{{ url_for('static', filename='jvc_script.js') }}?v=4"></script>
 </body>
 </html>
