@@ -22,6 +22,7 @@ import logging
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
