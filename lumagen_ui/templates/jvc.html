@@ -31,15 +31,16 @@
             <div class="control-card span-2">
                 <h2>Power</h2>
                 <div class="power-section">
-                    <button class="btn btn-power btn-power-on" onclick="jvcPower('on')">
+                    <button id="btn-power-on" class="btn btn-power btn-power-on">
+                        <span class="hold-ring"></span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
                             <line x1="12" y1="2" x2="12" y2="12"/>
                         </svg>
                         ON
                     </button>
-                    <button class="btn btn-power btn-power-off" onclick="jvcPower('off')">
-                        <!-- Power off: full power symbol in red -->
+                    <button id="btn-power-off" class="btn btn-power btn-power-off">
+                        <span class="hold-ring"></span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
                             <line x1="12" y1="2" x2="12" y2="12"/>
@@ -47,6 +48,7 @@
                         OFF
                     </button>
                 </div>
+                <p id="power-hold-hint" class="hold-hint">Touch and hold for 3 seconds to activate</p>
             </div>
 
             <!-- Input -->

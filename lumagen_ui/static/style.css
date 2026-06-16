@@ -388,6 +388,39 @@ header h1 {
     0 5px 16px rgba(0,0,0,0.45);
 }
 
+/* ── Hold-to-activate ring (mobile power buttons) ── */
+.hold-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(255,255,255,0.75) calc(var(--hold-progress, 0) * 360deg),
+    transparent 0deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 48px, black 50px);
+  mask: radial-gradient(circle, transparent 48px, black 50px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 3;
+}
+.btn-power.holding .hold-ring {
+  opacity: 1;
+}
+.btn-power.holding {
+  transform: scale(0.97);
+}
+
+.hold-hint {
+  display: none;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-top: 10px;
+  text-transform: uppercase;
+}
+
 /* ── Power OFF (JVC) ──────────────────────────────── */
 .btn-power-off {
   background-color: #3b0000;

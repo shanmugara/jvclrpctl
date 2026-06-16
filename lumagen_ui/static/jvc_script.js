@@ -1,5 +1,58 @@
 // JVC Projector Web UI
 
+const HOLD_DURATION = 3000;
+
+function isMobileDevice() {
+    return navigator.maxTouchPoints > 0 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function setupLongPress(button, action) {
+    let startTime = null;
+    let rafId = null;
+
+    function cancel() {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        startTime = null;
+        button.classList.remove('holding');
+        button.style.setProperty('--hold-progress', 0);
+    }
+
+    button.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startTime = performance.now();
+        button.classList.add('holding');
+
+        function animate() {
+            const progress = Math.min((performance.now() - startTime) / HOLD_DURATION, 1);
+            button.style.setProperty('--hold-progress', progress);
+            if (progress < 1) {
+                rafId = requestAnimationFrame(animate);
+            } else {
+                cancel();
+                if (navigator.vibrate) navigator.vibrate(50);
+                action();
+            }
+        }
+        rafId = requestAnimationFrame(animate);
+    }, { passive: false });
+
+    button.addEventListener('touchend', cancel);
+    button.addEventListener('touchcancel', cancel);
+}
+
+function initPowerButtons() {
+    const btnOn  = document.getElementById('btn-power-on');
+    const btnOff = document.getElementById('btn-power-off');
+    if (isMobileDevice()) {
+        document.getElementById('power-hold-hint').style.display = 'block';
+        setupLongPress(btnOn,  () => jvcPower('on'));
+        setupLongPress(btnOff, () => jvcPower('off'));
+    } else {
+        btnOn.addEventListener('click',  () => jvcPower('on'));
+        btnOff.addEventListener('click', () => jvcPower('off'));
+    }
+}
+
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -80,4 +133,7 @@ async function jvcStatus() {
     }
 }
 
-window.addEventListener('load', () => updateStatus('Ready', true));
+window.addEventListener('load', () => {
+    updateStatus('Ready', true);
+    initPowerButtons();
+});
