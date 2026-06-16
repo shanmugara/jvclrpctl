@@ -2,8 +2,12 @@
 
 const HOLD_DURATION = 3000;
 
-function isMobileDevice() {
-    return navigator.maxTouchPoints > 0 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+function isTouchDevice() {
+    return (
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia('(any-pointer: coarse)').matches
+    );
 }
 
 function setupLongPress(button, action) {
@@ -43,7 +47,7 @@ function setupLongPress(button, action) {
 function initPowerButtons() {
     const btnOn  = document.getElementById('btn-power-on');
     const btnOff = document.getElementById('btn-power-off');
-    if (isMobileDevice()) {
+    if (isTouchDevice()) {
         document.getElementById('power-hold-hint').style.display = 'block';
         setupLongPress(btnOn,  () => jvcPower('on'));
         setupLongPress(btnOff, () => jvcPower('off'));
