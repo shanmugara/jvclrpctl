@@ -116,20 +116,6 @@
                     </div>
                 </div>
 
-                <!-- Save -->
-                <div class="control-card">
-                    <h2>Configuration</h2>
-                    <div class="button-grid">
-                        <button class="btn btn-save" onclick="saveConfig()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                                <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
-                            </svg>
-                            Save
-                        </button>
-                    </div>
-                </div>
-
                 <!-- HDR Automation -->
                 <div class="control-card span-3" id="automation-card">
                     <h2>HDR Automation</h2>
@@ -531,6 +517,19 @@
                     <button class="btn btn-deint" id="deint-1" onclick="setDeinterlace(1)">Film</button>
                     <button class="btn btn-deint" id="deint-2" onclick="setDeinterlace(2)">Video</button>
                 </div>
+            </div>
+
+            <!-- Save to Flash -->
+            <div class="settings-block">
+                <h3>Persist Configuration</h3>
+                <button class="btn btn-save btn-save-flash" onclick="saveConfig()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
+                    </svg>
+                    Save to Flash
+                </button>
+                <p class="save-hint">Writes all current settings to non-volatile memory.</p>
             </div>
 
         </div>
