@@ -198,3 +198,168 @@ class LumagenControl:
     # Useful to call before input selection to ensure menu is dismissed.
     def clear_menu(self) -> str:
         return self.send_command("!")
+
+    # ── Navigation ─────────────────────────────────────────────────────────
+    # Spec: M=Menu, X=Exit, k=OK/Accept, <=Left, >=Right, ^=Up, v=Down, P=Prev
+    def menu(self) -> str:
+        return self.send_command("M")
+
+    def exit_key(self) -> str:
+        return self.send_command("X")
+
+    def ok(self) -> str:
+        return self.send_command("k")
+
+    def arrow_up(self) -> str:
+        return self.send_command("^")
+
+    def arrow_down(self) -> str:
+        return self.send_command("v")
+
+    def arrow_left(self) -> str:
+        return self.send_command("<")
+
+    def arrow_right(self) -> str:
+        return self.send_command(">")
+
+    def prev_input(self) -> str:
+        return self.send_command("P")
+
+    def osd_on(self) -> str:
+        return self.send_command("g")
+
+    def osd_off(self) -> str:
+        return self.send_command("s")
+
+    # ── Extended Aspect Ratios (Radiance Pro) ──────────────────────────────
+    # Spec: "1.90 A" / "2.00 C" / "2.20 E" / "2.40 G"
+    def set_aspect_1_90(self) -> str:
+        return self.send_command("A")
+
+    def set_aspect_2_00(self) -> str:
+        return self.send_command("C")
+
+    def set_aspect_2_20(self) -> str:
+        return self.send_command("E")
+
+    def set_aspect_2_40(self) -> str:
+        return self.send_command("G")
+
+    # ── No-Zoom Aspect Variants ────────────────────────────────────────────
+    # Spec: "4:3NZ [" / "LBOXNZ ]" / "16:9NZ *" / "1.85NZ /" / "2.35NZ K"
+    def set_aspect_4_3_nz(self) -> str:
+        return self.send_command("[")
+
+    def set_aspect_lbox_nz(self) -> str:
+        return self.send_command("]")
+
+    def set_aspect_16_9_nz(self) -> str:
+        return self.send_command("*")
+
+    def set_aspect_1_85_nz(self) -> str:
+        return self.send_command("/")
+
+    def set_aspect_2_35_nz(self) -> str:
+        return self.send_command("K")
+
+    # ── Auto Aspect ────────────────────────────────────────────────────────
+    # Spec: "~ Auto Aspect Enable" / "V Auto Aspect Disable" / "ZY550<CR> Reset"
+    def auto_aspect_enable(self) -> str:
+        return self.send_command("~")
+
+    def auto_aspect_disable(self) -> str:
+        return self.send_command("V")
+
+    def reset_auto_aspect(self) -> str:
+        return self.send_command("ZY550\r")
+
+    # ── Game Mode ──────────────────────────────────────────────────────────
+    # Spec: "ZQI53 Gamemode query" / "ZY551X<CR> Set Game-mode (0=off, 1=on)"
+    def get_game_mode(self) -> str:
+        return self.send_command("ZQI53")
+
+    def set_game_mode(self, on: bool) -> str:
+        return self.send_command(f"ZY551{'1' if on else '0'}\r")
+
+    # ── HDMI Hotplug ───────────────────────────────────────────────────────
+    # Spec: "ZY520X<CR>" X=0-7 maps to HDMI inputs 1-8, 'A' for All (Pro)
+    def hdmi_hotplug(self, input_id) -> str:
+        if str(input_id).lower() == 'all':
+            return self.send_command("ZY520A\r")
+        n = int(input_id)
+        if not 1 <= n <= 8:
+            raise ValueError("Input must be 1-8 or 'all'")
+        return self.send_command(f"ZY520{n - 1}\r")
+
+    # ── Sharpness ──────────────────────────────────────────────────────────
+    # Spec: "ZQI30 Query sharpness" / "ZY521ELS<CR>" E=Y/N, L=0-7, S=H/N
+    def get_sharpness(self) -> str:
+        return self.send_command("ZQI30")
+
+    def set_sharpness(self, enabled: bool, level: int, sensitivity: str = 'N') -> str:
+        e = 'Y' if enabled else 'N'
+        lv = max(0, min(7, int(level)))
+        s = 'H' if sensitivity.upper() == 'H' else 'N'
+        return self.send_command(f"ZY521{e}{lv}{s}\r")
+
+    # ── Test Patterns (ZY7T) ───────────────────────────────────────────────
+    # Spec: "ZY7TGSIII<CR>" G=group 'a'-'r', S=sub#, III=IRE 000-100
+    def test_pattern_full(self, group: str, sub: int, ire: int = 100) -> str:
+        ire_val = max(0, min(100, int(ire)))
+        return self.send_command(f"ZY7T{group}{sub}{ire_val:03d}\r")
+
+    # ── Output Format ──────────────────────────────────────────────────────
+    # Spec: "ZY46F<CR>" F: 0=YCbCr422, 1=YCbCr444, 2=RGBPC, 3=RGBVID, 8=automax, 9=auto9
+    # Query: "ZQO18" → !O18,N where N: 0=yc422, 1=yc444, 2=rgbvid, 3=rgbpc, 4=yc420
+    def get_output_format(self) -> str:
+        return self.send_command("ZQO18")
+
+    def set_output_format(self, fmt: int) -> str:
+        if fmt not in (0, 1, 2, 3, 8, 9):
+            raise ValueError("Format must be 0,1,2,3,8,9")
+        return self.send_command(f"ZY46{fmt}\r")
+
+    # ── CMS / Style ────────────────────────────────────────────────────────
+    # Spec: "ZY530MCDS<CR>" M=mode(K/0-7), C=CMS-SDR(K/0-7), D=CMS-HDR(K/0-7), S=style(K/0-7)
+    def set_cms_style(self, mode='K', cms_sdr='K', cms_hdr='K', style='K') -> str:
+        def _v(x):
+            s = str(x).upper()
+            return s if s == 'K' else str(int(s))
+        return self.send_command(f"ZY530{_v(mode)}{_v(cms_sdr)}{_v(cms_hdr)}{_v(style)}\r")
+
+    # ── PIP Controls ───────────────────────────────────────────────────────
+    # Spec: "PIP-OFF e" / "PIP-SEL p" / "PIP-SWAP r" / "PIP-MODE m"
+    def pip_off(self) -> str:
+        return self.send_command("e")
+
+    def pip_select(self) -> str:
+        return self.send_command("p")
+
+    def pip_swap(self) -> str:
+        return self.send_command("r")
+
+    def pip_mode(self) -> str:
+        return self.send_command("m")
+
+    # ── Deinterlacing ──────────────────────────────────────────────────────
+    # Spec: "ZQI15 Current input deinterlacing mode" / "ZY515X<CR>" 0=auto,1=film,2=video
+    def get_deinterlace_mode(self) -> str:
+        return self.send_command("ZQI15")
+
+    def set_deinterlace_mode(self, mode: int) -> str:
+        if mode not in (0, 1, 2):
+            raise ValueError("Mode must be 0 (auto), 1 (film), or 2 (video)")
+        return self.send_command(f"ZY515{mode}\r")
+
+    # ── Rich Status Queries ────────────────────────────────────────────────
+    def get_input_video(self) -> str:
+        """ZQI01 – source video: status, rate*100, hres, vres, interlaced, 3D"""
+        return self.send_command("ZQI01")
+
+    def get_input_aspect(self) -> str:
+        """ZQI20 – current aspect index + NLS flag"""
+        return self.send_command("ZQI20")
+
+    def get_output_mode_name(self) -> str:
+        """ZQO16 – output mode name (matches Output:Configs menu)"""
+        return self.send_command("ZQO16")

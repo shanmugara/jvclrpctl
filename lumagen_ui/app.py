@@ -199,12 +199,28 @@ def select_memory(memory):
 def set_aspect(aspect):
     try:
         aspect_map = {
-            '4:3': lumagen.set_aspect_4_3,
-            'lbox': lumagen.set_aspect_lbox,
-            '16:9': lumagen.set_aspect_16_9,
-            '1.85': lumagen.set_aspect_1_85,
-            '2.35': lumagen.set_aspect_2_35,
-            'nls': lumagen.set_aspect_nls,
+            # Standard
+            '4:3':        lumagen.set_aspect_4_3,
+            'lbox':       lumagen.set_aspect_lbox,
+            '16:9':       lumagen.set_aspect_16_9,
+            '1.85':       lumagen.set_aspect_1_85,
+            '2.35':       lumagen.set_aspect_2_35,
+            'nls':        lumagen.set_aspect_nls,
+            # Extended (Radiance Pro)
+            '1.90':       lumagen.set_aspect_1_90,
+            '2.00':       lumagen.set_aspect_2_00,
+            '2.20':       lumagen.set_aspect_2_20,
+            '2.40':       lumagen.set_aspect_2_40,
+            # No-Zoom variants
+            '4:3nz':      lumagen.set_aspect_4_3_nz,
+            'lboxnz':     lumagen.set_aspect_lbox_nz,
+            '16:9nz':     lumagen.set_aspect_16_9_nz,
+            '1.85nz':     lumagen.set_aspect_1_85_nz,
+            '2.35nz':     lumagen.set_aspect_2_35_nz,
+            # Auto-aspect
+            'auto_on':    lumagen.auto_aspect_enable,
+            'auto_off':   lumagen.auto_aspect_disable,
+            'auto_reset': lumagen.reset_auto_aspect,
         }
         if aspect not in aspect_map:
             return jsonify({'success': False, 'error': 'Invalid aspect ratio'}), 400
@@ -345,6 +361,376 @@ def jvc_status():
         return jsonify({'success': True, **jvc.get_status()})
     except Exception as e:
         logger.error(f"JVC status error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Navigation API
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/navigate/<action>', methods=['POST'])
+def navigate(action):
+    try:
+        nav_map = {
+            'menu':    lumagen.menu,
+            'exit':    lumagen.exit_key,
+            'ok':      lumagen.ok,
+            'up':      lumagen.arrow_up,
+            'down':    lumagen.arrow_down,
+            'left':    lumagen.arrow_left,
+            'right':   lumagen.arrow_right,
+            'prev':    lumagen.prev_input,
+            'osd_on':  lumagen.osd_on,
+            'osd_off': lumagen.osd_off,
+        }
+        # digit_N → send the ASCII digit character directly
+        if action.startswith('digit_') and len(action) == 7 and action[6].isdigit():
+            digit = action[6]
+            with lumagen_lock:
+                return jsonify({'success': True, 'response': lumagen.send_command(digit)})
+        if action not in nav_map:
+            return jsonify({'success': False, 'error': 'Invalid action'}), 400
+        with lumagen_lock:
+            return jsonify({'success': True, 'response': nav_map[action]()})
+    except Exception as e:
+        logger.error(f"Navigate error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Game Mode API
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/game-mode', methods=['GET'])
+def get_game_mode():
+    try:
+        with lumagen_lock:
+            raw = lumagen.get_game_mode()
+        return jsonify({'success': True, 'game_mode': '1' in raw, 'raw': raw})
+    except Exception as e:
+        logger.error(f"Game mode query error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/game-mode/<int:state>', methods=['POST'])
+def set_game_mode(state):
+    try:
+        with lumagen_lock:
+            lumagen.set_game_mode(bool(state))
+        return jsonify({'success': True, 'game_mode': bool(state)})
+    except Exception as e:
+        logger.error(f"Game mode set error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  HDMI Hotplug API
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/hdmi-hotplug/<input_id>', methods=['POST'])
+def hdmi_hotplug(input_id):
+    try:
+        with lumagen_lock:
+            resp = lumagen.hdmi_hotplug(input_id)
+        return jsonify({'success': True, 'input': input_id, 'response': resp})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"HDMI hotplug error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Sharpness API
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/sharpness', methods=['GET'])
+def get_sharpness():
+    try:
+        with lumagen_lock:
+            raw = lumagen.get_sharpness()
+        return jsonify({'success': True, 'raw': raw})
+    except Exception as e:
+        logger.error(f"Sharpness query error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/sharpness', methods=['POST'])
+def set_sharpness():
+    try:
+        data = request.get_json() or {}
+        enabled = bool(data.get('enabled', True))
+        level = int(data.get('level', 4))
+        sensitivity = data.get('sensitivity', 'N')
+        with lumagen_lock:
+            resp = lumagen.set_sharpness(enabled, level, sensitivity)
+        return jsonify({'success': True, 'response': resp})
+    except Exception as e:
+        logger.error(f"Sharpness set error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Test Pattern (full library) API
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/test-pattern-full', methods=['POST'])
+def test_pattern_full():
+    try:
+        data = request.get_json() or {}
+        group = str(data.get('group', 'b'))
+        sub = int(data.get('sub', 0))
+        ire = int(data.get('ire', 100))
+        with lumagen_lock:
+            resp = lumagen.test_pattern_full(group, sub, ire)
+        return jsonify({'success': True, 'pattern': f'{group},{sub}', 'ire': ire, 'response': resp})
+    except Exception as e:
+        logger.error(f"Test pattern full error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Output Format API
+# ══════════════════════════════════════════════════════════════════════════
+
+_FMT_NAMES = {0: 'YCbCr 4:2:2', 1: 'YCbCr 4:4:4', 2: 'RGB Video', 3: 'RGB PC', 4: 'YCbCr 4:2:0'}
+
+
+@app.route('/api/output-format', methods=['GET'])
+def get_output_format():
+    try:
+        with lumagen_lock:
+            raw = lumagen.get_output_format()
+        val = None
+        if raw:
+            try:
+                val = int(raw.split(',')[-1].strip())
+            except (ValueError, IndexError):
+                pass
+        return jsonify({'success': True, 'format': val,
+                        'format_name': _FMT_NAMES.get(val, 'Unknown'), 'raw': raw})
+    except Exception as e:
+        logger.error(f"Output format query error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/output-format/<int:fmt>', methods=['POST'])
+def set_output_format(fmt):
+    try:
+        with lumagen_lock:
+            resp = lumagen.set_output_format(fmt)
+        return jsonify({'success': True, 'format': fmt,
+                        'format_name': _FMT_NAMES.get(fmt, 'Unknown'), 'response': resp})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Output format set error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  CMS / Style API
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/cms-style', methods=['POST'])
+def set_cms_style():
+    try:
+        data = request.get_json() or {}
+        with lumagen_lock:
+            resp = lumagen.set_cms_style(
+                mode=data.get('mode', 'K'),
+                cms_sdr=data.get('cms_sdr', 'K'),
+                cms_hdr=data.get('cms_hdr', 'K'),
+                style=data.get('style', 'K'),
+            )
+        return jsonify({'success': True, 'response': resp})
+    except Exception as e:
+        logger.error(f"CMS/Style error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  PIP API
+# ══════════════════════════════════════════════════════════════════════════
+
+@app.route('/api/pip/<action>', methods=['POST'])
+def pip_control(action):
+    try:
+        pip_map = {
+            'off':    lumagen.pip_off,
+            'select': lumagen.pip_select,
+            'swap':   lumagen.pip_swap,
+            'mode':   lumagen.pip_mode,
+        }
+        if action not in pip_map:
+            return jsonify({'success': False, 'error': 'Invalid PIP action'}), 400
+        with lumagen_lock:
+            return jsonify({'success': True, 'response': pip_map[action]()})
+    except Exception as e:
+        logger.error(f"PIP error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Deinterlace API
+# ══════════════════════════════════════════════════════════════════════════
+
+_DEINT_NAMES = {'0': 'Auto', '1': 'Film', '2': 'Video'}
+
+
+@app.route('/api/deinterlace', methods=['GET'])
+def get_deinterlace():
+    try:
+        with lumagen_lock:
+            raw = lumagen.get_deinterlace_mode()
+        val = raw.split(',')[-1].strip() if raw else None
+        return jsonify({'success': True, 'mode': val,
+                        'mode_name': _DEINT_NAMES.get(val, 'Unknown'), 'raw': raw})
+    except Exception as e:
+        logger.error(f"Deinterlace query error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/deinterlace/<int:mode>', methods=['POST'])
+def set_deinterlace(mode):
+    try:
+        with lumagen_lock:
+            resp = lumagen.set_deinterlace_mode(mode)
+        return jsonify({'success': True, 'mode': mode, 'response': resp})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Deinterlace set error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Rich Status API
+# ══════════════════════════════════════════════════════════════════════════
+
+_ASPECT_IDX = {'0': '4:3', '1': 'LBOX', '2': '16:9', '3': '1.85', '4': '2.35',
+               '8': 'ALT-1.85', '9': 'ALT-2.35'}
+_CS_NAMES    = {0: 'BT.601', 1: 'BT.709', 2: 'BT.2020', 3: 'BT.2100'}
+
+
+def _parse_rich(full, info, input_video, input_aspect, output_mode_name, output_fmt, game_mode_raw):
+    r = {}
+
+    if full:
+        p = full.split(',')
+        try:
+            m = int(p[1]) if len(p) > 1 else -1
+            r['input_status'] = {0: 'No Source', 1: 'Active Video', 2: 'Test Pattern'}.get(m, '?')
+            r['input_active'] = m == 1
+
+            if len(p) > 17:
+                rate = int(p[2])
+                vres = int(p[3])
+                f_val = int(p[17])
+                r['source_resolution'] = vres
+                r['source_rate'] = rate
+                r['hdr'] = f_val == 1
+                r['hdr_label'] = 'HDR' if f_val == 1 else 'SDR'
+
+            if len(p) > 18:
+                g = p[18]
+                r['source_scan'] = 'Progressive' if g == 'p' else ('Interlaced' if g == 'i' else 'No Input')
+
+            if len(p) > 8:
+                asp = int(p[7])
+                r['source_aspect'] = f"{asp / 100:.2f}" if asp else '—'
+                r['nls_active'] = p[8] == 'N'
+
+            if len(p) > 16:
+                prate = int(p[13])
+                qres = int(p[14])
+                cs = int(p[16])
+                r['output_resolution'] = qres
+                r['output_rate'] = prate
+                r['output_colorspace'] = _CS_NAMES.get(cs, '?')
+                out_asp = int(p[15])
+                r['output_aspect'] = f"{out_asp / 100:.2f}" if out_asp else '—'
+
+            if len(p) > 12:
+                r['cms'] = int(p[11])
+                r['style'] = int(p[12])
+
+            if len(p) > 19:
+                h = p[19]
+                r['output_scan'] = 'Progressive' if h == 'P' else ('Interlaced' if h == 'I' else '?')
+
+            if len(p) > 21:
+                r['virtual_input'] = int(p[20])
+                r['physical_input'] = int(p[21])
+        except (ValueError, IndexError):
+            pass
+
+    if info:
+        p = info.split(',')
+        if len(p) >= 5:
+            r['model'] = p[1]
+            r['firmware'] = p[2]
+            r['serial'] = p[4].strip()
+
+    if input_video:
+        p = input_video.split(',')
+        try:
+            if len(p) >= 5:
+                rate100 = int(p[2])
+                hres = int(p[3])
+                vres = int(p[4])
+                interlaced = int(p[5]) if len(p) > 5 else 0
+                scan = 'i' if interlaced else 'p'
+                rate_hz = rate100 / 100
+                r['source_detail'] = f"{hres}×{vres}{scan} @ {rate_hz:.2f} Hz" if hres else '—'
+        except (ValueError, IndexError):
+            pass
+
+    if input_aspect:
+        p = input_aspect.split(',')
+        if len(p) >= 2:
+            xy = p[1].strip()
+            if xy:
+                r['input_aspect'] = _ASPECT_IDX.get(xy[0], '?')
+                r['nls_mode'] = len(xy) > 1 and xy[1] == 'N'
+
+    if output_mode_name:
+        name = output_mode_name
+        if ',' in name:
+            name = name.split(',', 1)[1]
+        r['output_mode_name'] = name.strip()
+
+    if output_fmt:
+        try:
+            val = int(output_fmt.split(',')[-1].strip())
+            r['output_format'] = _FMT_NAMES.get(val, '?')
+        except (ValueError, IndexError):
+            pass
+
+    if game_mode_raw:
+        r['game_mode'] = '1' in game_mode_raw
+
+    return r
+
+
+@app.route('/api/rich-status', methods=['GET'])
+def get_rich_status():
+    try:
+        with lumagen_lock:
+            full          = lumagen.get_status()
+            info          = lumagen.get_info()
+            input_video   = lumagen.get_input_video()
+            input_aspect  = lumagen.get_input_aspect()
+            output_mode   = lumagen.get_output_mode_name()
+            output_fmt    = lumagen.get_output_format()
+            game_mode_raw = lumagen.get_game_mode()
+        parsed = _parse_rich(full, info, input_video, input_aspect, output_mode, output_fmt, game_mode_raw)
+        return jsonify({'success': True, **parsed,
+                        '_raw': {'full': full, 'info': info, 'input_video': input_video,
+                                 'input_aspect': input_aspect, 'output_mode': output_mode,
+                                 'output_fmt': output_fmt}})
+    except Exception as e:
+        logger.error(f"Rich status error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
