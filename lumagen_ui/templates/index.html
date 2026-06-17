@@ -141,21 +141,26 @@
                 <div class="control-card span-2">
                     <h2>D-Pad</h2>
                     <div class="dpad-wrap">
+                        <!-- Menu button sits in the top-right corner above the d-pad -->
+                        <div class="dpad-corner-row">
+                            <button class="btn btn-nav-menu btn-corner" onclick="navigate('menu')" title="Menu">MENU</button>
+                        </div>
+                        <!-- D-pad with OK in centre -->
                         <div class="dpad-grid">
                             <div class="dpad-blank"></div>
-                            <button class="btn btn-nav" onclick="navigate('up')" title="Up">▲</button>
+                            <button class="btn btn-nav" onclick="navigate('up')"    title="Up">▲</button>
                             <div class="dpad-blank"></div>
-                            <button class="btn btn-nav" onclick="navigate('left')" title="Left">◀</button>
-                            <button class="btn btn-nav btn-nav-menu" onclick="navigate('menu')" title="Menu">MENU</button>
+                            <button class="btn btn-nav" onclick="navigate('left')"  title="Left">◀</button>
+                            <button class="btn btn-nav btn-nav-ok" onclick="navigate('ok')" title="OK / Accept">OK</button>
                             <button class="btn btn-nav" onclick="navigate('right')" title="Right">▶</button>
                             <div class="dpad-blank"></div>
-                            <button class="btn btn-nav" onclick="navigate('down')" title="Down">▼</button>
+                            <button class="btn btn-nav" onclick="navigate('down')"  title="Down">▼</button>
                             <div class="dpad-blank"></div>
                         </div>
+                        <!-- Prev and Exit as pill buttons -->
                         <div class="dpad-action-row">
-                            <button class="btn btn-nav btn-nav-prev" onclick="navigate('prev')" title="Previous Input">PREV</button>
-                            <button class="btn btn-nav btn-nav-ok"   onclick="navigate('ok')"   title="OK / Accept">OK</button>
-                            <button class="btn btn-nav btn-nav-exit" onclick="navigate('exit')"  title="Exit / Cancel">EXIT</button>
+                            <button class="btn btn-nav-prev btn-pill" onclick="navigate('prev')" title="Previous Input">◁&nbsp;PREV</button>
+                            <button class="btn btn-nav-exit btn-pill" onclick="navigate('exit')" title="Exit / Cancel">EXIT&nbsp;▷</button>
                         </div>
                     </div>
                 </div>

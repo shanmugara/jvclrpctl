@@ -590,8 +590,29 @@ header h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
+
+/* Corner row: holds MENU right-aligned over the d-pad */
+.dpad-corner-row {
+  width: calc(3 * 62px + 2 * 7px);   /* matches d-pad grid width */
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -6px;               /* pull it closer to the d-pad */
+}
+.btn-corner {
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .dpad-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(54px, 62px));
@@ -600,9 +621,10 @@ header h1 {
   justify-content: center;
 }
 .dpad-blank { /* empty cell placeholder */ }
+
 .dpad-action-row {
   display: flex;
-  gap: 8px;
+  gap: 14px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -618,53 +640,90 @@ header h1 {
   gap: 7px;
   justify-content: center;
 }
-.numpad-zero {
-  grid-column: 2;
-}
+.numpad-zero { grid-column: 2; }
 
+/* Pill shape for PREV / EXIT */
+.btn-pill::before { border-radius: 50px !important; }
+.btn-pill {
+  border-radius: 50px !important;
+  padding: 10px 26px !important;
+  font-size: 12px !important;
+  font-weight: 700;
+  letter-spacing: 1px;
+  min-width: 100px;
+  border: 1px solid;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  min-height: 44px;
+}
+.btn-pill:hover { transform: translateY(-2px); filter: brightness(1.15); }
+.btn-pill:active { transform: translateY(1px) scale(0.975); filter: brightness(0.88); }
+
+/* ── Nav button colour classes ────────────────────── */
 .btn-nav {
   background-color: #152038;
   border-color: #2a4870;
   color: #82b0d8;
   font-size: 18px;
   padding: 0;
+  border: 1px solid #2a4870;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  min-height: 44px;
 }
 .btn-nav:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.2),
-    0 0 14px rgba(66,133,244,0.4),
-    0 5px 14px rgba(0,0,0,0.45);
+  transform: translateY(-2px);
+  filter: brightness(1.18);
+  box-shadow: 0 0 14px rgba(66,133,244,0.4), 0 5px 14px rgba(0,0,0,0.45);
 }
+.btn-nav:active { transform: translateY(1px) scale(0.975); filter: brightness(0.88); }
+
 .btn-nav-ok {
   background-color: #003d35;
   border-color: #00695c;
   color: #80cbc4;
   font-size: 13px;
+  font-weight: 700;
 }
 .btn-nav-ok:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.2),
-    0 0 16px rgba(0,188,160,0.42),
-    0 5px 16px rgba(0,0,0,0.45);
+  box-shadow: 0 0 16px rgba(0,188,160,0.5), 0 5px 16px rgba(0,0,0,0.45);
 }
+
 .btn-nav-menu {
   background-color: #1a1040;
   border-color: #3730a3;
   color: #a5b4fc;
-  font-size: 11px;
 }
+.btn-nav-menu:hover { filter: brightness(1.2); box-shadow: 0 0 12px rgba(99,102,241,0.45); }
+
 .btn-nav-exit {
   background-color: #3b1010;
   border-color: #7f1d1d;
   color: #fca5a5;
-  font-size: 11px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 3px 10px rgba(0,0,0,0.4);
 }
+.btn-nav-exit:hover { box-shadow: 0 0 14px rgba(239,68,68,0.45), 0 5px 14px rgba(0,0,0,0.45); }
+
 .btn-nav-prev {
   background-color: #1c2030;
   border-color: #374151;
   color: #9ca3af;
-  font-size: 11px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 10px rgba(0,0,0,0.4);
 }
+.btn-nav-prev:hover { box-shadow: 0 0 12px rgba(156,163,175,0.3), 0 5px 12px rgba(0,0,0,0.45); }
+
 .btn-osd {
   background-color: #1a2010;
   border-color: #365314;
