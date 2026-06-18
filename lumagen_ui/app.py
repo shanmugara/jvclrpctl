@@ -5,6 +5,7 @@ Unified service: manual controls + background HDR automation (runner.py).
 
 import sys
 import os
+import json
 import threading
 import time
 
@@ -17,6 +18,7 @@ from flask import Flask, render_template, jsonify, request
 from lumagen_control import LumagenControl
 from jvc_control import JVCControl
 from runner.runner import JVC_LRP_Runner, POLLING_INTERVAL
+from jvclrpctl import PictureMode
 from jvclrpctl.lumagen.constants import LRPInputModes
 import logging
 
@@ -26,6 +28,14 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# ── Config file ───────────────────────────────────────────────────────────
+# Path is configurable via CONFIG_FILE env var; defaults to config.json
+# next to app.py so the service can find it without extra setup.
+CONFIG_FILE = os.getenv(
+    'CONFIG_FILE',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json'),
+)
 
 # ── Shared serial lock ─────────────────────────────────────────────────────
 # Serialises all Lumagen serial-port access across the automation thread and
@@ -52,6 +62,68 @@ runner = JVC_LRP_Runner(
     lumagen_lock=lumagen_lock,      # shared lock — serialises all serial access
     lumagen_control=lumagen,        # reuse Flask's LumagenControl; only one
 )                                   # serial object ever opens /dev/ttyUSB0
+
+_automation_enabled = True
+
+
+def _load_config():
+    """Apply settings from CONFIG_FILE to the live runner/automation objects."""
+    global jvc, lumagen, _automation_enabled
+    if not os.path.exists(CONFIG_FILE):
+        logger.info(f"No config file at {CONFIG_FILE} — using defaults")
+        return
+    try:
+        with open(CONFIG_FILE) as f:
+            data = json.load(f)
+
+        jvc_host = str(data.get('jvc_host', runner.projector_ip)).strip()
+        jvc_port = int(data.get('jvc_port', runner.projector_port))
+        runner.projector_ip   = jvc_host
+        runner.projector_port = jvc_port
+        jvc = JVCControl(host=jvc_host) if jvc_host else None
+
+        lport = str(data.get('lumagen_port', runner.lumagen_port)).strip()
+        if lport:
+            runner.lumagen_port     = lport
+            lumagen                 = LumagenControl(port=lport)
+            runner._lumagen_control = lumagen
+
+        if 'poll_interval' in data:
+            automation._interval = max(2, min(300, int(data['poll_interval'])))
+        if 'hdr_mode' in data:
+            runner.hdr_mode = PictureMode[data['hdr_mode']]
+        if 'sdr_mode' in data:
+            runner.sdr_mode = PictureMode[data['sdr_mode']]
+        if 'settle_time' in data:
+            runner.settle_time = max(1, min(60, int(data['settle_time'])))
+        if 'automation_enabled' in data:
+            _automation_enabled = bool(data['automation_enabled'])
+
+        logger.info(f"Config loaded from {CONFIG_FILE}")
+    except Exception as e:
+        logger.warning(f"Failed to load config from {CONFIG_FILE}: {e}")
+
+
+def _save_config():
+    """Write current runner/automation settings to CONFIG_FILE."""
+    data = {
+        'jvc_host':           runner.projector_ip,
+        'jvc_port':           runner.projector_port,
+        'lumagen_port':       runner.lumagen_port,
+        'poll_interval':      automation._interval,
+        'hdr_mode':           runner.hdr_mode.name,
+        'sdr_mode':           runner.sdr_mode.name,
+        'settle_time':        runner.settle_time,
+        'automation_enabled': _automation_enabled,
+    }
+    try:
+        config_dir = os.path.dirname(os.path.abspath(CONFIG_FILE))
+        os.makedirs(config_dir, exist_ok=True)
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+        logger.info(f"Config saved to {CONFIG_FILE}")
+    except Exception as e:
+        logger.warning(f"Failed to save config to {CONFIG_FILE}: {e}")
 
 
 class AutomationManager:
@@ -104,7 +176,8 @@ class AutomationManager:
 
 
 automation = AutomationManager(runner)
-if JVC_HOST:
+_load_config()          # overlay persisted settings before starting the loop
+if runner.projector_ip and _automation_enabled:
     automation.start()
 
 
@@ -132,6 +205,11 @@ def jvc_page():
     return render_template('jvc.html', jvc_host=JVC_HOST)
 
 
+@app.route('/config')
+def config_page():
+    return render_template('config.html')
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  Automation API
 # ══════════════════════════════════════════════════════════════════════════
@@ -153,6 +231,84 @@ def start_automation():
 def stop_automation():
     automation.stop()
     return jsonify({'success': True, **automation.status()})
+
+
+@app.route('/api/automation/config', methods=['GET'])
+def get_automation_config():
+    return jsonify({
+        'success':            True,
+        'jvc_host':           runner.projector_ip,
+        'jvc_port':           runner.projector_port,
+        'lumagen_port':       runner.lumagen_port,
+        'poll_interval':      automation._interval,
+        'hdr_mode':           runner.hdr_mode.name,
+        'sdr_mode':           runner.sdr_mode.name,
+        'settle_time':        runner.settle_time,
+        'automation_enabled': _automation_enabled,
+        'picture_modes':      [m.name for m in PictureMode],
+        'config_file':        CONFIG_FILE,
+    })
+
+
+@app.route('/api/automation/config', methods=['POST'])
+def set_automation_config():
+    global jvc, lumagen, _automation_enabled
+    data = request.get_json() or {}
+
+    if 'jvc_host' in data or 'jvc_port' in data:
+        new_host = str(data.get('jvc_host', runner.projector_ip)).strip()
+        new_port = int(data.get('jvc_port', runner.projector_port))
+        runner.projector_ip   = new_host
+        runner.projector_port = new_port
+        jvc = JVCControl(host=new_host) if new_host else None
+        logger.info(f"JVC config updated: {new_host}:{new_port}")
+
+    if 'lumagen_port' in data:
+        new_lport = str(data.get('lumagen_port', '')).strip()
+        if new_lport:
+            runner.lumagen_port        = new_lport
+            lumagen                    = LumagenControl(port=new_lport)
+            runner._lumagen_control    = lumagen
+            logger.info(f"Lumagen port updated: {new_lport}")
+
+    if 'poll_interval' in data:
+        automation._interval = max(2, min(300, int(data['poll_interval'])))
+
+    if 'hdr_mode' in data:
+        try:
+            runner.hdr_mode = PictureMode[data['hdr_mode']]
+        except KeyError:
+            return jsonify({'success': False, 'error': f"Unknown picture mode: {data['hdr_mode']}"}), 400
+
+    if 'sdr_mode' in data:
+        try:
+            runner.sdr_mode = PictureMode[data['sdr_mode']]
+        except KeyError:
+            return jsonify({'success': False, 'error': f"Unknown picture mode: {data['sdr_mode']}"}), 400
+
+    if 'settle_time' in data:
+        runner.settle_time = max(1, min(60, int(data['settle_time'])))
+
+    if 'automation_enabled' in data:
+        _automation_enabled = bool(data['automation_enabled'])
+        if _automation_enabled and runner.projector_ip:
+            automation.start()
+        elif not _automation_enabled:
+            automation.stop()
+
+    _save_config()
+    return jsonify({
+        'success':            True,
+        'jvc_host':           runner.projector_ip,
+        'jvc_port':           runner.projector_port,
+        'lumagen_port':       runner.lumagen_port,
+        'poll_interval':      automation._interval,
+        'hdr_mode':           runner.hdr_mode.name,
+        'sdr_mode':           runner.sdr_mode.name,
+        'settle_time':        runner.settle_time,
+        'automation_enabled': _automation_enabled,
+        'config_file':        CONFIG_FILE,
+    })
 
 
 # ══════════════════════════════════════════════════════════════════════════

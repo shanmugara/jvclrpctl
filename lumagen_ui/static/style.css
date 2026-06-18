@@ -1083,6 +1083,9 @@ header h1 {
     align-items: center;
     gap: 8px;
   }
+  .cms-row.cms-row-wide {
+    grid-template-columns: 120px 1fr;
+  }
 }
 .selector-btns {
   display: flex;
@@ -1153,6 +1156,49 @@ header h1 {
 }
 .btn-cms-apply:hover {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(16,185,129,0.4), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+/* ── Automation config ────────────────────────────── */
+.cfg-file-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  word-break: break-all;
+}
+.cfg-file-hint code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+/* ── Automation config inputs ─────────────────────── */
+.cfg-input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 7px;
+  color: var(--text);
+  padding: 7px 11px;
+  font-size: 13px;
+  min-width: 190px;
+  transition: border-color 0.15s;
+}
+.cfg-input-sm { min-width: 90px; }
+.cfg-input:focus {
+  outline: none;
+  border-color: rgba(79,195,247,0.5);
+  background: rgba(79,195,247,0.06);
+}
+.cfg-input::placeholder { color: var(--text-dim); }
+
+.btn-cfg-apply {
+  background-color: #0d1f35;
+  border-color: #1e4d7a;
+  color: #7dd3fc;
+  font-size: 13px;
+  padding: 9px 28px;
+}
+.btn-cfg-apply:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(56,189,248,0.38), 0 5px 14px rgba(0,0,0,0.45);
 }
 
 /* ── Mobile adjustments ───────────────────────────── */

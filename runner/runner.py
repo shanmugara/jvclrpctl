@@ -37,6 +37,10 @@ class JVC_LRP_Runner:
         self.lumagen = None
         self.lumagen_commands = None
         self.lumagen_input_mode = LRPInputModes.NA
+        # Runtime-configurable picture modes and settle time (can be updated live).
+        self.hdr_mode   = JVC_PICTURE_MODE_HDR
+        self.sdr_mode   = JVC_PICTURE_MODE_SDR
+        self.settle_time = PM_SETTLE_TIME
         # Optional threading.Lock for shared serial port access (used when embedded
         # in the Flask app). When None (standalone), a no-op context is used.
         self._lumagen_lock = lumagen_lock if lumagen_lock is not None else contextlib.nullcontext()
@@ -127,8 +131,8 @@ class JVC_LRP_Runner:
     def set_jvc_picture_mode(self, mode: PictureMode, initial_run=False):
         """Set the projector picture mode"""
         if not initial_run:
-            info(f"Wait for projector {PM_SETTLE_TIME} sec...")
-            sleep(PM_SETTLE_TIME)
+            info(f"Wait for projector {self.settle_time} sec...")
+            sleep(self.settle_time)
 
         # connect_projector() raises JVCConnectionError on failure
         self.connect_projector()
@@ -221,12 +225,12 @@ class JVC_LRP_Runner:
                     error(f"Could not read current JVC picture mode: {e}. Skipping this cycle.")
                     return
                 debug(f"Current JVC picture mode: {current_jvc_mode.display_name}")
-                if current_input_mode == LRPInputModes.HDR and current_jvc_mode == JVC_PICTURE_MODE_HDR:
+                if current_input_mode == LRPInputModes.HDR and current_jvc_mode == self.hdr_mode:
                     debug("JVC picture mode matches for HDR input mode. No change needed.")
                     info("✓ HDR\n")
                     self.lumagen_input_mode = current_input_mode
                     return
-                elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == JVC_PICTURE_MODE_SDR:
+                elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == self.sdr_mode:
                     debug("JVC picture mode matches for SDR input mode. No change needed.")
                     info("✓ SDR\n")
                     self.lumagen_input_mode = current_input_mode
@@ -237,18 +241,18 @@ class JVC_LRP_Runner:
             # ── JVC phase (lock NOT held; serial port free) ───────────────
             if current_input_mode == LRPInputModes.HDR:
                 debug("HDR input detected. Setting JVC picture mode to HDR...")
-                info("HDR → USER3")
+                info(f"HDR → {self.hdr_mode.display_name}")
                 try:
-                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_HDR, _initial_run)
+                    self.set_jvc_picture_mode(self.hdr_mode, _initial_run)
                     debug("updating last known input mode to HDR")
                     self.lumagen_input_mode = current_input_mode
                 except Exception as e:
                     error(f"Failed to set JVC picture mode to HDR: {e}")
             elif current_input_mode == LRPInputModes.SDR:
                 debug("SDR input detected. Setting JVC picture mode to SDR...")
-                info("SDR → USER1")
+                info(f"SDR → {self.sdr_mode.display_name}")
                 try:
-                    self.set_jvc_picture_mode(JVC_PICTURE_MODE_SDR, _initial_run)
+                    self.set_jvc_picture_mode(self.sdr_mode, _initial_run)
                     debug("updating last known input mode to SDR")
                     self.lumagen_input_mode = current_input_mode
                 except Exception as e:
