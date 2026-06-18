@@ -49,11 +49,44 @@ CONFIG_FILE="${CONFIG_FILE:-$SCRIPT_DIR/config.json}"
 # Resolve to absolute path
 CONFIG_FILE="$(realpath -m "$CONFIG_FILE")"
 
+VALID_MODES=("FILM" "CINEMA" "NATURAL" "HDR" "THX" "FRAME_ADAPT_HDR" "HLG"
+             "USER1" "USER2" "USER3" "USER4" "USER5" "USER6")
+
+_is_valid_mode() {
+    local m
+    for m in "${VALID_MODES[@]}"; do [[ "$1" == "$m" ]] && return 0; done
+    return 1
+}
+
+_pick_mode() {
+    local label="$1" default="$2" input
+    while true; do
+        read -rp "    $label [$default]: " input
+        input="${input:-$default}"
+        input="${input^^}"
+        if _is_valid_mode "$input"; then
+            echo "$input"
+            return
+        fi
+        echo -e "${YELLOW}[!]${NC}  '$input' is not a valid mode. Choose from:" >&2
+        echo -e "${YELLOW}[!]${NC}  ${VALID_MODES[*]}" >&2
+    done
+}
+
 read -rp "  Enable HDR automation on startup? [Y/n]: " ENABLE_AUTO
 if [[ "${ENABLE_AUTO:-Y}" =~ ^[Yy]$ ]]; then
     AUTOMATION_ENABLED=true
+    echo ""
+    echo -e "  Supported JVC picture modes:"
+    echo -e "  FILM  CINEMA  NATURAL  HDR  THX  FRAME_ADAPT_HDR  HLG"
+    echo -e "  USER1  USER2  USER3  USER4  USER5  USER6"
+    echo ""
+    PMODE_HDR=$(_pick_mode "HDR picture mode" "USER3")
+    PMODE_SDR=$(_pick_mode "SDR picture mode" "USER1")
 else
     AUTOMATION_ENABLED=false
+    PMODE_HDR="USER3"
+    PMODE_SDR="USER1"
 fi
 
 echo ""
@@ -94,8 +127,8 @@ else
   "jvc_port": 20554,
   "lumagen_port": "$LUMAGEN_PORT",
   "poll_interval": 30,
-  "hdr_mode": "USER3",
-  "sdr_mode": "USER1",
+  "hdr_mode": "$PMODE_HDR",
+  "sdr_mode": "$PMODE_SDR",
   "settle_time": 4,
   "automation_enabled": $AUTOMATION_ENABLED
 }
