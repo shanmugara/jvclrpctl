@@ -347,7 +347,6 @@ document.addEventListener('keydown', (event) => {
         case 'ArrowLeft':  navigate('left');  break;
         case 'ArrowRight': navigate('right'); break;
         case 'Enter':      navigate('ok');    break;
-        case 'Escape':     navigate('exit');  break;
         case 'm': case 'M': navigate('menu'); break;
     }
 });
