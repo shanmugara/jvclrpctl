@@ -4,186 +4,551 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumagen Radiance Pro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=5">
 </head>
 <body>
     <div class="container">
         <nav class="page-nav">
             <a href="/" class="nav-tab active">Lumagen</a>
             <a href="/jvc" class="nav-tab">JVC Projector</a>
+            <a href="/config" class="nav-tab">Configuration</a>
         </nav>
         <header>
             <h1>Lumagen Radiance Pro</h1>
             <p class="subtitle">Network Control Interface</p>
         </header>
 
-        <!-- Status Bar -->
         <div class="status-bar">
             <div id="status-indicator" class="status-indicator"></div>
             <span id="status-text">Ready</span>
         </div>
 
-        <div class="dashboard-grid">
+        <!-- ── In-page tab navigation ── -->
+        <div class="lumagen-tabs">
+            <button class="lumagen-tab active" data-tab="control"  onclick="switchTab('control')">Control</button>
+            <button class="lumagen-tab"         data-tab="navigate" onclick="switchTab('navigate')">Navigate</button>
+            <button class="lumagen-tab"         data-tab="aspect"   onclick="switchTab('aspect')">Aspect</button>
+            <button class="lumagen-tab"         data-tab="patterns" onclick="switchTab('patterns')">Patterns</button>
+            <button class="lumagen-tab"         data-tab="status"   onclick="switchTab('status')">Status</button>
+            <button class="lumagen-tab"         data-tab="settings" onclick="switchTab('settings')">Settings</button>
+        </div>
 
-            <!-- Power Control -->
-            <div class="control-card span-2">
-                <h2>Power</h2>
-                <div class="power-section">
-                    <button class="btn btn-power btn-power-on" onclick="confirmPowerControl('on')">
-                        <!-- IEC power-on symbol -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                            <line x1="12" y1="2" x2="12" y2="12"/>
-                        </svg>
-                        ON
-                    </button>
-                    <button class="btn btn-power btn-power-off" onclick="confirmPowerControl('standby')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                            <line x1="12" y1="2" x2="12" y2="12"/>
-                        </svg>
-                        OFF
-                    </button>
-                </div>
-            </div>
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 1 — CONTROL                                          -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-control" class="tab-panel active">
+            <div class="dashboard-grid">
 
-            <!-- Memory Selection -->
-            <div class="control-card">
-                <h2>Configuration Memory</h2>
-                <div class="button-grid">
-                    <button class="btn btn-memory" onclick="selectMemory('A')">MEM A</button>
-                    <button class="btn btn-memory" onclick="selectMemory('B')">MEM B</button>
-                    <button class="btn btn-memory" onclick="selectMemory('C')">MEM C</button>
-                    <button class="btn btn-memory" onclick="selectMemory('D')">MEM D</button>
-                </div>
-            </div>
-
-            <!-- Input Selection -->
-            <div class="control-card span-2">
-                <h2>Input Selection</h2>
-                <div class="button-grid">
-                    <button class="btn btn-input" onclick="selectInput(1)">Input 1</button>
-                    <button class="btn btn-input" onclick="selectInput(2)">Input 2</button>
-                    <button class="btn btn-input" onclick="selectInput(3)">Input 3</button>
-                    <button class="btn btn-input" onclick="selectInput(4)">Input 4</button>
-                    <button class="btn btn-input" onclick="selectInput(5)">Input 5</button>
-                    <button class="btn btn-input" onclick="selectInput(6)">Input 6</button>
-                    <button class="btn btn-input" onclick="selectInput(7)">Input 7</button>
-                    <button class="btn btn-input" onclick="selectInput(8)">Input 8</button>
-                </div>
-            </div>
-
-            <!-- Zoom Control -->
-            <div class="control-card">
-                <h2>Zoom</h2>
-                <div class="button-grid">
-                    <button class="btn btn-zoom" onclick="zoomControl('in')">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Zoom In
-                    </button>
-                    <button class="btn btn-zoom" onclick="zoomControl('out')">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Zoom Out
-                    </button>
-                </div>
-            </div>
-
-            <!-- Aspect Ratio -->
-            <div class="control-card span-2">
-                <h2>Aspect Ratio</h2>
-                <div class="button-grid">
-                    <button class="btn btn-aspect" onclick="setAspect('4:3')">4:3</button>
-                    <button class="btn btn-aspect" onclick="setAspect('lbox')">LBOX</button>
-                    <button class="btn btn-aspect" onclick="setAspect('16:9')">16:9</button>
-                    <button class="btn btn-aspect" onclick="setAspect('1.85')">1.85</button>
-                    <button class="btn btn-aspect" onclick="setAspect('2.35')">2.35</button>
-                    <button class="btn btn-aspect" onclick="setAspect('nls')">NLS</button>
-                </div>
-            </div>
-
-            <!-- Test Patterns -->
-            <div class="control-card">
-                <h2>Test Patterns</h2>
-                <div class="button-grid">
-                    <button class="btn btn-test" onclick="testPattern('contrast')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>
-                            <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>
-                        </svg>
-                        Contrast
-                    </button>
-                    <button class="btn btn-test" onclick="testPattern('off')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                        Pat. Off
-                    </button>
-                </div>
-            </div>
-
-            <!-- Output Resolution -->
-            <div class="control-card span-2">
-                <h2>Output Resolution</h2>
-                <div class="button-grid">
-                    <button class="btn btn-output" onclick="setOutput('auto')">Auto</button>
-                    <button class="btn btn-output" onclick="setOutput('480p')">480p</button>
-                    <button class="btn btn-output" onclick="setOutput('720p')">720p</button>
-                    <button class="btn btn-output" onclick="setOutput('1080p24')">1080p24</button>
-                    <button class="btn btn-output" onclick="setOutput('1080p')">1080p60</button>
-                    <button class="btn btn-output" onclick="setOutput('4k24')">4K24</button>
-                    <button class="btn btn-output" onclick="setOutput('4k60')">4K60</button>
-                </div>
-            </div>
-
-            <!-- Save / Info -->
-            <div class="control-card">
-                <h2>Configuration</h2>
-                <div class="button-grid">
-                    <button class="btn btn-save" onclick="saveConfig()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                            <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
-                        </svg>
-                        Save
-                    </button>
-                    <button class="btn btn-info" onclick="getStatus()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        Status
-                    </button>
-                </div>
-            </div>
-
-            <!-- HDR Automation -->
-            <div class="control-card span-3" id="automation-card">
-                <h2>HDR Automation</h2>
-                <div class="automation-row">
-                    <div class="automation-state">
-                        <div id="automation-indicator" class="automation-indicator"></div>
-                        <span id="automation-status-text">Checking…</span>
-                        <span class="automation-content" id="automation-content"></span>
+                <!-- Power -->
+                <div class="control-card span-2">
+                    <div class="power-header-row">
+                        <h2>Power</h2>
+                        <span class="power-led" id="lumagen-power-led" title="Lumagen power status"></span>
                     </div>
-                    <button class="btn btn-automation" id="automation-toggle-btn"
-                            onclick="toggleAutomation()">—</button>
+                    <div class="power-section">
+                        <button class="btn btn-power btn-power-on" onclick="confirmPowerControl('on')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
+                            </svg>
+                            ON
+                        </button>
+                        <button class="btn btn-power btn-power-standby" onclick="confirmPowerControl('standby')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
+                            </svg>
+                            STBY
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Memory -->
+                <div class="control-card">
+                    <h2>Configuration Memory</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-memory" onclick="selectMemory('A')">MEM A</button>
+                        <button class="btn btn-memory" onclick="selectMemory('B')">MEM B</button>
+                        <button class="btn btn-memory" onclick="selectMemory('C')">MEM C</button>
+                        <button class="btn btn-memory" onclick="selectMemory('D')">MEM D</button>
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div class="control-card span-2">
+                    <h2>Input Selection</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-input" onclick="selectInput(1)">Input 1</button>
+                        <button class="btn btn-input" onclick="selectInput(2)">Input 2</button>
+                        <button class="btn btn-input" onclick="selectInput(3)">Input 3</button>
+                        <button class="btn btn-input" onclick="selectInput(4)">Input 4</button>
+                        <button class="btn btn-input" onclick="selectInput(5)">Input 5</button>
+                        <button class="btn btn-input" onclick="selectInput(6)">Input 6</button>
+                        <button class="btn btn-input" onclick="selectInput(7)">Input 7</button>
+                        <button class="btn btn-input" onclick="selectInput(8)">Input 8</button>
+                    </div>
+                </div>
+
+                <!-- Zoom -->
+                <div class="control-card">
+                    <h2>Zoom</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-zoom" onclick="zoomControl('in')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Zoom In
+                        </button>
+                        <button class="btn btn-zoom" onclick="zoomControl('out')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Zoom Out
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Output Resolution -->
+                <div class="control-card span-2">
+                    <h2>Output Resolution</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-output" onclick="setOutput('auto')">Auto</button>
+                        <button class="btn btn-output" onclick="setOutput('480p')">480p</button>
+                        <button class="btn btn-output" onclick="setOutput('720p')">720p</button>
+                        <button class="btn btn-output" onclick="setOutput('1080p24')">1080p24</button>
+                        <button class="btn btn-output" onclick="setOutput('1080p')">1080p60</button>
+                        <button class="btn btn-output" onclick="setOutput('4k24')">4K24</button>
+                        <button class="btn btn-output" onclick="setOutput('4k60')">4K60</button>
+                    </div>
+                </div>
+
+                <!-- HDR Automation -->
+                <div class="control-card span-3" id="automation-card">
+                    <h2>HDR Automation</h2>
+                    <div class="automation-row">
+                        <div class="automation-state">
+                            <div id="automation-indicator" class="automation-indicator"></div>
+                            <span id="automation-status-text">Checking…</span>
+                            <span class="automation-content" id="automation-content"></span>
+                        </div>
+                        <button class="btn btn-automation" id="automation-toggle-btn" onclick="toggleAutomation()">—</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 2 — NAVIGATE                                         -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-navigate" class="tab-panel">
+            <div class="dashboard-grid">
+
+                <div class="control-card span-2">
+                    <h2>D-Pad</h2>
+                    <div class="dpad-wrap">
+                        <!-- Save (left, col-1) and Menu (right, col-3) pill buttons above the d-pad -->
+                        <div class="dpad-corner-row">
+                            <button class="btn btn-save btn-corner-pill" onclick="saveConfig()" title="Save to flash">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
+                                </svg>
+                                Save
+                            </button>
+                            <button class="btn btn-nav-menu btn-corner-pill" onclick="navigate('menu')" title="Menu">MENU</button>
+                        </div>
+                        <!-- Ring D-pad: arrow segments + OK circle -->
+                        <div class="dpad-ring">
+                            <button class="btn btn-nav btn-ring-up"    onclick="navigate('up')"    title="Up">▲</button>
+                            <button class="btn btn-nav btn-ring-left"   onclick="navigate('left')"  title="Left">◀</button>
+                            <button class="btn btn-nav btn-nav-ok btn-ring-ok" onclick="navigate('ok')" title="OK / Accept">OK</button>
+                            <button class="btn btn-nav btn-ring-right"  onclick="navigate('right')" title="Right">▶</button>
+                            <button class="btn btn-nav btn-ring-down"   onclick="navigate('down')"  title="Down">▼</button>
+                        </div>
+                        <!-- Prev and Exit as pill buttons -->
+                        <div class="dpad-action-row">
+                            <button class="btn btn-nav-prev btn-pill" onclick="navigate('prev')" title="Previous Input">◁&nbsp;PREV</button>
+                            <button class="btn btn-nav-exit btn-pill" onclick="navigate('exit')" title="Exit / Cancel">EXIT&nbsp;▷</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-card">
+                    <h2>On-Screen Display</h2>
+                    <div class="osd-row">
+                        <button class="btn btn-osd" onclick="navigate('osd_on')">OSD On</button>
+                        <button class="btn btn-osd" onclick="navigate('osd_off')">OSD Off</button>
+                    </div>
+                </div>
+
+                <div class="control-card span-2">
+                    <h2>Number Entry</h2>
+                    <div class="numpad-grid">
+                        <button class="btn btn-num" onclick="sendDigit(1)">1</button>
+                        <button class="btn btn-num" onclick="sendDigit(2)">2</button>
+                        <button class="btn btn-num" onclick="sendDigit(3)">3</button>
+                        <button class="btn btn-num" onclick="sendDigit(4)">4</button>
+                        <button class="btn btn-num" onclick="sendDigit(5)">5</button>
+                        <button class="btn btn-num" onclick="sendDigit(6)">6</button>
+                        <button class="btn btn-num" onclick="sendDigit(7)">7</button>
+                        <button class="btn btn-num" onclick="sendDigit(8)">8</button>
+                        <button class="btn btn-num" onclick="sendDigit(9)">9</button>
+                        <div></div>
+                        <button class="btn btn-num numpad-zero" onclick="sendDigit(0)">0</button>
+                        <div></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 3 — ASPECT                                           -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-aspect" class="tab-panel">
+            <div class="control-card">
+
+                <div class="aspect-section">
+                    <h3>Standard</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-aspect" onclick="setAspect('4:3')">4:3</button>
+                        <button class="btn btn-aspect" onclick="setAspect('lbox')">LBOX</button>
+                        <button class="btn btn-aspect" onclick="setAspect('16:9')">16:9</button>
+                        <button class="btn btn-aspect" onclick="setAspect('1.85')">1.85</button>
+                        <button class="btn btn-aspect" onclick="setAspect('2.35')">2.35</button>
+                        <button class="btn btn-aspect" onclick="setAspect('nls')">NLS</button>
+                    </div>
+                </div>
+
+                <div class="aspect-section">
+                    <h3>Extended (Radiance Pro)</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-aspect-ext" onclick="setAspect('1.90')">1.90</button>
+                        <button class="btn btn-aspect-ext" onclick="setAspect('2.00')">2.00</button>
+                        <button class="btn btn-aspect-ext" onclick="setAspect('2.20')">2.20</button>
+                        <button class="btn btn-aspect-ext" onclick="setAspect('2.40')">2.40</button>
+                    </div>
+                </div>
+
+                <div class="aspect-section">
+                    <h3>No-Zoom Variants</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-aspect-nz" onclick="setAspect('4:3nz')">4:3 NZ</button>
+                        <button class="btn btn-aspect-nz" onclick="setAspect('lboxnz')">LBOX NZ</button>
+                        <button class="btn btn-aspect-nz" onclick="setAspect('16:9nz')">16:9 NZ</button>
+                        <button class="btn btn-aspect-nz" onclick="setAspect('1.85nz')">1.85 NZ</button>
+                        <button class="btn btn-aspect-nz" onclick="setAspect('2.35nz')">2.35 NZ</button>
+                    </div>
+                </div>
+
+                <div class="aspect-section">
+                    <h3>Auto Aspect</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-auto-asp" onclick="setAspect('auto_on')">Enable</button>
+                        <button class="btn btn-auto-asp" onclick="setAspect('auto_off')">Disable</button>
+                        <button class="btn btn-auto-asp" onclick="setAspect('auto_reset')">Reset</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 4 — PATTERNS                                         -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-patterns" class="tab-panel">
+            <div class="control-card">
+
+                <div class="pattern-ire-row">
+                    <label for="pattern-ire">IRE</label>
+                    <input type="range" id="pattern-ire" min="0" max="100" value="100" step="5"
+                           oninput="document.getElementById('pattern-ire-val').textContent = this.value + '%'">
+                    <span class="pattern-ire-val" id="pattern-ire-val">100%</span>
+                </div>
+
+                <div class="pattern-section">
+                    <h3>Geometry</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-pat-geo" onclick="sendPattern('a',0)">Crosshatch</button>
+                        <button class="btn btn-pat-geo" onclick="sendPattern('a',1)">Overscan</button>
+                        <button class="btn btn-pat-geo" onclick="sendPattern('a',2)">Asp Sqr</button>
+                        <button class="btn btn-pat-geo" onclick="sendPattern('c',0)">H Lines</button>
+                        <button class="btn btn-pat-geo" onclick="sendPattern('c',1)">V Lines</button>
+                    </div>
+                </div>
+
+                <div class="pattern-section">
+                    <h3>Calibration</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',0)">Contrast 1</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',2)">Contrast 2</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('d',0)">Ramp</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',3)">Blk Ramp</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',4)">Low Clip</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',5)">Wht Ramp</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',6)">Hi Clip</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',10)">Vid Black</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',11)">Vid White</button>
+                        <button class="btn btn-pat-cal" onclick="sendPattern('b',7)">Targets</button>
+                    </div>
+                </div>
+
+                <div class="pattern-section">
+                    <h3>Color</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-pat-color" onclick="sendPattern('f',0)">100% Bars</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('f',1)">75% Bars</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('e',0)">Gray Win</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('e',2)">Gray Solid</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('g',2)">Red</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('h',2)">Green</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('i',2)">Blue</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('j',2)">Yellow</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('k',2)">Cyan</button>
+                        <button class="btn btn-pat-color" onclick="sendPattern('l',2)">Magenta</button>
+                    </div>
+                </div>
+
+                <div class="button-grid" style="margin-top:14px;">
+                    <button class="btn btn-pat-exit" onclick="patternOff()">✕ Exit Pattern</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 5 — STATUS                                           -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-status" class="tab-panel">
+
+            <div class="status-toolbar">
+                <button class="btn btn-info" onclick="refreshStatus()" style="padding:9px 20px;font-size:13px;">
+                    Refresh
+                </button>
+                <label class="status-auto-label">
+                    <input type="checkbox" id="status-auto-refresh" onchange="toggleStatusAutoRefresh(this.checked)">
+                    Auto-refresh (5s)
+                </label>
+            </div>
+
+            <div class="status-sections">
+
+                <div class="status-section">
+                    <div class="status-section-head">Source</div>
+                    <div class="status-rows">
+                        <div class="status-row"><span class="status-lbl">Status</span>   <span class="status-val" id="ss-input-status">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Input</span>    <span class="status-val" id="ss-input">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Video</span>    <span class="status-val" id="ss-source-detail">—</span></div>
+                        <div class="status-row"><span class="status-lbl">HDR</span>      <span class="status-val" id="ss-hdr">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Aspect</span>   <span class="status-val" id="ss-aspect">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Scan</span>     <span class="status-val" id="ss-scan">—</span></div>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-section-head">Output</div>
+                    <div class="status-rows">
+                        <div class="status-row"><span class="status-lbl">Mode</span>       <span class="status-val" id="ss-out-mode">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Resolution</span> <span class="status-val" id="ss-out-res">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Format</span>     <span class="status-val" id="ss-out-fmt">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Colorspace</span><span class="status-val" id="ss-out-cs">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Aspect</span>     <span class="status-val" id="ss-out-asp">—</span></div>
+                        <div class="status-row"><span class="status-lbl">CMS / Style</span><span class="status-val" id="ss-cms-style">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Scan</span>       <span class="status-val" id="ss-out-scan">—</span></div>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-section-head">Device</div>
+                    <div class="status-rows">
+                        <div class="status-row"><span class="status-lbl">Model</span>     <span class="status-val" id="ss-model">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Firmware</span>  <span class="status-val" id="ss-firmware">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Serial</span>    <span class="status-val" id="ss-serial">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Game Mode</span> <span class="status-val" id="ss-game-mode">—</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 6 — SETTINGS                                         -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-settings" class="tab-panel">
+
+            <!-- Game Mode -->
+            <div class="settings-block">
+                <h3>Game Mode</h3>
+                <div class="settings-row">
+                    <button class="btn btn-game" id="game-off-btn" onclick="setGameMode(0)">Off</button>
+                    <button class="btn btn-game" id="game-on-btn"  onclick="setGameMode(1)">On</button>
                 </div>
             </div>
 
-            <!-- Status Display -->
-            <div class="control-card span-3">
-                <h2>Status Information</h2>
-                <div id="status-display" class="status-display">Click "Status" to view Lumagen information</div>
+            <!-- HDMI Hotplug -->
+            <div class="settings-block">
+                <h3>HDMI Hotplug</h3>
+                <div class="button-grid">
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(1)">HDMI 1</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(2)">HDMI 2</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(3)">HDMI 3</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(4)">HDMI 4</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(5)">HDMI 5</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(6)">HDMI 6</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(7)">HDMI 7</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug(8)">HDMI 8</button>
+                    <button class="btn btn-hotplug" onclick="hdmiHotplug('all')">All</button>
+                </div>
+            </div>
+
+            <!-- Sharpness -->
+            <div class="settings-block">
+                <h3>Sharpness</h3>
+                <div class="settings-row">
+                    <span class="settings-label">Enable</span>
+                    <div class="selector-btns">
+                        <button class="sel-btn" id="sharp-off" data-sharp-en="false" onclick="selectSharpEnable(false)">Off</button>
+                        <button class="sel-btn active" id="sharp-on" data-sharp-en="true" onclick="selectSharpEnable(true)">On</button>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Level</span>
+                    <div class="selector-btns" id="sharp-levels">
+                        <button class="sel-btn" data-val="0" onclick="selectSharpLevel(0)">0</button>
+                        <button class="sel-btn" data-val="1" onclick="selectSharpLevel(1)">1</button>
+                        <button class="sel-btn" data-val="2" onclick="selectSharpLevel(2)">2</button>
+                        <button class="sel-btn" data-val="3" onclick="selectSharpLevel(3)">3</button>
+                        <button class="sel-btn active" data-val="4" onclick="selectSharpLevel(4)">4</button>
+                        <button class="sel-btn" data-val="5" onclick="selectSharpLevel(5)">5</button>
+                        <button class="sel-btn" data-val="6" onclick="selectSharpLevel(6)">6</button>
+                        <button class="sel-btn" data-val="7" onclick="selectSharpLevel(7)">7</button>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Sensitivity</span>
+                    <div class="selector-btns">
+                        <button class="sel-btn active" id="sens-N" data-val="N" onclick="selectSharpSens('N')">Normal</button>
+                        <button class="sel-btn" id="sens-H" data-val="H" onclick="selectSharpSens('H')">High</button>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <button class="btn btn-sharp" onclick="applySharpness()">Apply Sharpness</button>
+                </div>
+            </div>
+
+            <!-- Output Format -->
+            <div class="settings-block">
+                <h3>Output Format</h3>
+                <div class="button-grid">
+                    <button class="btn btn-fmt" onclick="setOutputFormat(0)">YCbCr 4:2:2</button>
+                    <button class="btn btn-fmt" onclick="setOutputFormat(1)">YCbCr 4:4:4</button>
+                    <button class="btn btn-fmt" onclick="setOutputFormat(2)">RGB Video</button>
+                    <button class="btn btn-fmt" onclick="setOutputFormat(3)">RGB PC</button>
+                    <button class="btn btn-fmt" onclick="setOutputFormat(8)">Auto Max</button>
+                    <button class="btn btn-fmt" onclick="setOutputFormat(9)">Auto</button>
+                </div>
+            </div>
+
+            <!-- CMS / Style -->
+            <div class="settings-block">
+                <h3>CMS / Style</h3>
+                <div class="cms-row">
+                    <span class="settings-label">Mode</span>
+                    <div class="selector-btns" id="cms-mode-btns">
+                        <button class="sel-btn active" data-group="mode" data-val="K" onclick="cmsSelect('mode','K',this)">K</button>
+                        <button class="sel-btn" data-group="mode" data-val="0" onclick="cmsSelect('mode','0',this)">0</button>
+                        <button class="sel-btn" data-group="mode" data-val="1" onclick="cmsSelect('mode','1',this)">1</button>
+                        <button class="sel-btn" data-group="mode" data-val="2" onclick="cmsSelect('mode','2',this)">2</button>
+                        <button class="sel-btn" data-group="mode" data-val="3" onclick="cmsSelect('mode','3',this)">3</button>
+                        <button class="sel-btn" data-group="mode" data-val="4" onclick="cmsSelect('mode','4',this)">4</button>
+                        <button class="sel-btn" data-group="mode" data-val="5" onclick="cmsSelect('mode','5',this)">5</button>
+                        <button class="sel-btn" data-group="mode" data-val="6" onclick="cmsSelect('mode','6',this)">6</button>
+                        <button class="sel-btn" data-group="mode" data-val="7" onclick="cmsSelect('mode','7',this)">7</button>
+                    </div>
+                </div>
+                <div class="cms-row">
+                    <span class="settings-label">CMS SDR</span>
+                    <div class="selector-btns" id="cms-sdr-btns">
+                        <button class="sel-btn active" data-group="cms_sdr" data-val="K" onclick="cmsSelect('cms_sdr','K',this)">K</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="0" onclick="cmsSelect('cms_sdr','0',this)">0</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="1" onclick="cmsSelect('cms_sdr','1',this)">1</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="2" onclick="cmsSelect('cms_sdr','2',this)">2</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="3" onclick="cmsSelect('cms_sdr','3',this)">3</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="4" onclick="cmsSelect('cms_sdr','4',this)">4</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="5" onclick="cmsSelect('cms_sdr','5',this)">5</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="6" onclick="cmsSelect('cms_sdr','6',this)">6</button>
+                        <button class="sel-btn" data-group="cms_sdr" data-val="7" onclick="cmsSelect('cms_sdr','7',this)">7</button>
+                    </div>
+                </div>
+                <div class="cms-row">
+                    <span class="settings-label">CMS HDR</span>
+                    <div class="selector-btns" id="cms-hdr-btns">
+                        <button class="sel-btn active" data-group="cms_hdr" data-val="K" onclick="cmsSelect('cms_hdr','K',this)">K</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="0" onclick="cmsSelect('cms_hdr','0',this)">0</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="1" onclick="cmsSelect('cms_hdr','1',this)">1</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="2" onclick="cmsSelect('cms_hdr','2',this)">2</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="3" onclick="cmsSelect('cms_hdr','3',this)">3</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="4" onclick="cmsSelect('cms_hdr','4',this)">4</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="5" onclick="cmsSelect('cms_hdr','5',this)">5</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="6" onclick="cmsSelect('cms_hdr','6',this)">6</button>
+                        <button class="sel-btn" data-group="cms_hdr" data-val="7" onclick="cmsSelect('cms_hdr','7',this)">7</button>
+                    </div>
+                </div>
+                <div class="cms-row">
+                    <span class="settings-label">Style</span>
+                    <div class="selector-btns" id="cms-style-btns">
+                        <button class="sel-btn active" data-group="style" data-val="K" onclick="cmsSelect('style','K',this)">K</button>
+                        <button class="sel-btn" data-group="style" data-val="0" onclick="cmsSelect('style','0',this)">0</button>
+                        <button class="sel-btn" data-group="style" data-val="1" onclick="cmsSelect('style','1',this)">1</button>
+                        <button class="sel-btn" data-group="style" data-val="2" onclick="cmsSelect('style','2',this)">2</button>
+                        <button class="sel-btn" data-group="style" data-val="3" onclick="cmsSelect('style','3',this)">3</button>
+                        <button class="sel-btn" data-group="style" data-val="4" onclick="cmsSelect('style','4',this)">4</button>
+                        <button class="sel-btn" data-group="style" data-val="5" onclick="cmsSelect('style','5',this)">5</button>
+                        <button class="sel-btn" data-group="style" data-val="6" onclick="cmsSelect('style','6',this)">6</button>
+                        <button class="sel-btn" data-group="style" data-val="7" onclick="cmsSelect('style','7',this)">7</button>
+                    </div>
+                </div>
+                <button class="btn btn-cms-apply" onclick="applyCmsStyle()">Apply CMS / Style</button>
+            </div>
+
+            <!-- PIP -->
+            <div class="settings-block">
+                <h3>Picture-in-Picture</h3>
+                <div class="button-grid">
+                    <button class="btn btn-pip" onclick="pipControl('off')">PIP Off</button>
+                    <button class="btn btn-pip" onclick="pipControl('select')">PIP Select</button>
+                    <button class="btn btn-pip" onclick="pipControl('swap')">PIP Swap</button>
+                    <button class="btn btn-pip" onclick="pipControl('mode')">PIP Mode</button>
+                </div>
+            </div>
+
+            <!-- Deinterlace -->
+            <div class="settings-block">
+                <h3>Deinterlacing</h3>
+                <div class="settings-row">
+                    <button class="btn btn-deint" id="deint-0" onclick="setDeinterlace(0)">Auto</button>
+                    <button class="btn btn-deint" id="deint-1" onclick="setDeinterlace(1)">Film</button>
+                    <button class="btn btn-deint" id="deint-2" onclick="setDeinterlace(2)">Video</button>
+                </div>
+            </div>
+
+            <!-- Save to Flash -->
+            <div class="settings-block">
+                <h3>Persist Configuration</h3>
+                <button class="btn btn-save btn-save-flash" onclick="saveConfig()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
+                    </svg>
+                    Save to Flash
+                </button>
+                <p class="save-hint">Writes all current settings to non-volatile memory.</p>
             </div>
 
         </div>
-    </div>
+        <!-- end tab-settings -->
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=4"></script>
+    </div><!-- end .container -->
+
+    <script src="{{ url_for('static', filename='script.js') }}?v=5"></script>
 </body>
 </html>

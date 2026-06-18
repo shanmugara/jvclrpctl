@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=5">
+</head>
+<body>
+    <div class="container">
+        <nav class="page-nav">
+            <a href="/" class="nav-tab">Lumagen</a>
+            <a href="/jvc" class="nav-tab">JVC Projector</a>
+            <a href="/config" class="nav-tab active">Configuration</a>
+        </nav>
+        <header>
+            <h1>Configuration</h1>
+            <p class="subtitle">Automation &amp; Connectivity Settings</p>
+        </header>
+
+        <div class="status-bar">
+            <div id="status-indicator" class="status-indicator"></div>
+            <span id="status-text">Ready</span>
+        </div>
+
+        <!-- Automation & Connectivity -->
+        <div class="settings-block">
+            <h3>Automation &amp; Connectivity</h3>
+            <p class="cfg-file-hint">Config file: <code id="cfg-file-path">—</code></p>
+
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">JVC Host</span>
+                <input type="text" id="cfg-jvc-host" class="cfg-input" placeholder="192.168.100.240">
+            </div>
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">JVC Port</span>
+                <input type="number" id="cfg-jvc-port" class="cfg-input cfg-input-sm" value="20554" min="1" max="65535">
+            </div>
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">Lumagen Port</span>
+                <input type="text" id="cfg-lumagen-port" class="cfg-input" placeholder="/dev/ttyUSB0">
+            </div>
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">Poll Interval (s)</span>
+                <input type="number" id="cfg-poll-interval" class="cfg-input cfg-input-sm" value="30" min="2" max="300">
+            </div>
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">Settle Time (s)</span>
+                <input type="number" id="cfg-settle-time" class="cfg-input cfg-input-sm" value="4" min="1" max="60">
+            </div>
+
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">Enable Automation</span>
+                <div class="selector-btns" id="auto-enable-btns">
+                    <button class="sel-btn" id="auto-enable-off" data-val="false" onclick="autoSelectEnable(false, this)">Off</button>
+                    <button class="sel-btn active" id="auto-enable-on" data-val="true" onclick="autoSelectEnable(true, this)">On</button>
+                </div>
+            </div>
+
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">HDR Mode</span>
+                <div class="selector-btns" id="auto-hdr-mode-btns">
+                    <button class="sel-btn" data-val="FILM"            onclick="autoSelectMode('hdr_mode','FILM',this)">Film</button>
+                    <button class="sel-btn" data-val="CINEMA"          onclick="autoSelectMode('hdr_mode','CINEMA',this)">Cinema</button>
+                    <button class="sel-btn" data-val="NATURAL"         onclick="autoSelectMode('hdr_mode','NATURAL',this)">Natural</button>
+                    <button class="sel-btn" data-val="HDR"             onclick="autoSelectMode('hdr_mode','HDR',this)">HDR</button>
+                    <button class="sel-btn" data-val="THX"             onclick="autoSelectMode('hdr_mode','THX',this)">THX</button>
+                    <button class="sel-btn" data-val="FRAME_ADAPT_HDR" onclick="autoSelectMode('hdr_mode','FRAME_ADAPT_HDR',this)">Frame Adapt</button>
+                    <button class="sel-btn" data-val="HLG"             onclick="autoSelectMode('hdr_mode','HLG',this)">HLG</button>
+                    <button class="sel-btn" data-val="USER1"           onclick="autoSelectMode('hdr_mode','USER1',this)">User 1</button>
+                    <button class="sel-btn" data-val="USER2"           onclick="autoSelectMode('hdr_mode','USER2',this)">User 2</button>
+                    <button class="sel-btn active" data-val="USER3"    onclick="autoSelectMode('hdr_mode','USER3',this)">User 3</button>
+                    <button class="sel-btn" data-val="USER4"           onclick="autoSelectMode('hdr_mode','USER4',this)">User 4</button>
+                    <button class="sel-btn" data-val="USER5"           onclick="autoSelectMode('hdr_mode','USER5',this)">User 5</button>
+                    <button class="sel-btn" data-val="USER6"           onclick="autoSelectMode('hdr_mode','USER6',this)">User 6</button>
+                </div>
+            </div>
+
+            <div class="cms-row cms-row-wide">
+                <span class="settings-label">SDR Mode</span>
+                <div class="selector-btns" id="auto-sdr-mode-btns">
+                    <button class="sel-btn" data-val="FILM"            onclick="autoSelectMode('sdr_mode','FILM',this)">Film</button>
+                    <button class="sel-btn" data-val="CINEMA"          onclick="autoSelectMode('sdr_mode','CINEMA',this)">Cinema</button>
+                    <button class="sel-btn" data-val="NATURAL"         onclick="autoSelectMode('sdr_mode','NATURAL',this)">Natural</button>
+                    <button class="sel-btn" data-val="HDR"             onclick="autoSelectMode('sdr_mode','HDR',this)">HDR</button>
+                    <button class="sel-btn" data-val="THX"             onclick="autoSelectMode('sdr_mode','THX',this)">THX</button>
+                    <button class="sel-btn" data-val="FRAME_ADAPT_HDR" onclick="autoSelectMode('sdr_mode','FRAME_ADAPT_HDR',this)">Frame Adapt</button>
+                    <button class="sel-btn" data-val="HLG"             onclick="autoSelectMode('sdr_mode','HLG',this)">HLG</button>
+                    <button class="sel-btn active" data-val="USER1"    onclick="autoSelectMode('sdr_mode','USER1',this)">User 1</button>
+                    <button class="sel-btn" data-val="USER2"           onclick="autoSelectMode('sdr_mode','USER2',this)">User 2</button>
+                    <button class="sel-btn" data-val="USER3"           onclick="autoSelectMode('sdr_mode','USER3',this)">User 3</button>
+                    <button class="sel-btn" data-val="USER4"           onclick="autoSelectMode('sdr_mode','USER4',this)">User 4</button>
+                    <button class="sel-btn" data-val="USER5"           onclick="autoSelectMode('sdr_mode','USER5',this)">User 5</button>
+                    <button class="sel-btn" data-val="USER6"           onclick="autoSelectMode('sdr_mode','USER6',this)">User 6</button>
+                </div>
+            </div>
+
+            <div class="settings-row" style="margin-top:10px;">
+                <button class="btn btn-cfg-apply" onclick="applyAutomationConfig()">Apply</button>
+            </div>
+        </div>
+
+    </div><!-- end .container -->
+
+    <script src="{{ url_for('static', filename='config_script.js') }}?v=1"></script>
+</body>
+</html>

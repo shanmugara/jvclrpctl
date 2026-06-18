@@ -44,10 +44,57 @@ JVC_HOST="${JVC_HOST:-192.168.100.240}"
 read -rp "  Web UI port          [5001]: " UI_PORT
 UI_PORT="${UI_PORT:-5001}"
 
+read -rp "  Config file path     [$SCRIPT_DIR/config.json]: " CONFIG_FILE
+CONFIG_FILE="${CONFIG_FILE:-$SCRIPT_DIR/config.json}"
+# Resolve to absolute path
+CONFIG_FILE="$(realpath -m "$CONFIG_FILE")"
+
+VALID_MODES=("FILM" "CINEMA" "NATURAL" "HDR" "THX" "FRAME_ADAPT_HDR" "HLG"
+             "USER1" "USER2" "USER3" "USER4" "USER5" "USER6")
+
+_is_valid_mode() {
+    local m
+    for m in "${VALID_MODES[@]}"; do [[ "$1" == "$m" ]] && return 0; done
+    return 1
+}
+
+_pick_mode() {
+    local label="$1" default="$2" input
+    while true; do
+        read -rp "    $label [$default]: " input
+        input="${input:-$default}"
+        input="${input^^}"
+        if _is_valid_mode "$input"; then
+            echo "$input"
+            return
+        fi
+        echo -e "${YELLOW}[!]${NC}  '$input' is not a valid mode. Choose from:" >&2
+        echo -e "${YELLOW}[!]${NC}  ${VALID_MODES[*]}" >&2
+    done
+}
+
+read -rp "  Enable HDR automation on startup? [Y/n]: " ENABLE_AUTO
+if [[ "${ENABLE_AUTO:-Y}" =~ ^[Yy]$ ]]; then
+    AUTOMATION_ENABLED=true
+    echo ""
+    echo -e "  Supported JVC picture modes:"
+    echo -e "  FILM  CINEMA  NATURAL  HDR  THX  FRAME_ADAPT_HDR  HLG"
+    echo -e "  USER1  USER2  USER3  USER4  USER5  USER6"
+    echo ""
+    PMODE_HDR=$(_pick_mode "HDR picture mode" "USER3")
+    PMODE_SDR=$(_pick_mode "SDR picture mode" "USER1")
+else
+    AUTOMATION_ENABLED=false
+    PMODE_HDR="USER3"
+    PMODE_SDR="USER1"
+fi
+
 echo ""
 info "Lumagen port : $LUMAGEN_PORT"
 info "JVC host     : ${JVC_HOST:-not configured}"
 info "UI port      : $UI_PORT"
+info "Config file  : $CONFIG_FILE"
+info "Automation   : $AUTOMATION_ENABLED"
 echo ""
 read -rp "Proceed? [Y/n]: " CONFIRM
 [[ "${CONFIRM:-Y}" =~ ^[Yy]$ ]] || { warn "Aborted."; exit 0; }
@@ -63,6 +110,32 @@ step "Log directory"
 mkdir -p /var/log/jvclrpctl
 chown "$ACTUAL_USER" /var/log/jvclrpctl
 info "Log directory: /var/log/jvclrpctl (owner: $ACTUAL_USER)"
+
+# ── Config file ───────────────────────────────────────────────────────────
+step "Config file"
+CONFIG_DIR="$(dirname "$CONFIG_FILE")"
+mkdir -p "$CONFIG_DIR"
+chown "$ACTUAL_USER" "$CONFIG_DIR"
+
+if [ -f "$CONFIG_FILE" ]; then
+    warn "Config file already exists at $CONFIG_FILE — preserving existing settings"
+    info "Update settings at any time via the web UI Settings tab"
+else
+    cat > "$CONFIG_FILE" <<EOF
+{
+  "jvc_host": "$JVC_HOST",
+  "jvc_port": 20554,
+  "lumagen_port": "$LUMAGEN_PORT",
+  "poll_interval": 30,
+  "hdr_mode": "$PMODE_HDR",
+  "sdr_mode": "$PMODE_SDR",
+  "settle_time": 4,
+  "automation_enabled": $AUTOMATION_ENABLED
+}
+EOF
+    chown "$ACTUAL_USER" "$CONFIG_FILE"
+    info "Config file written to $CONFIG_FILE"
+fi
 
 # ── Serial port access ────────────────────────────────────────────────────
 step "Serial port permissions"
@@ -104,6 +177,7 @@ User=$ACTUAL_USER
 WorkingDirectory=$SCRIPT_DIR
 Environment="LUMAGEN_PORT=$LUMAGEN_PORT"
 $JVC_ENV_LINE
+Environment="CONFIG_FILE=$CONFIG_FILE"
 ExecStart=$VENV/bin/gunicorn \\
     --workers 1 \\
     --worker-class gthread \\
@@ -139,6 +213,7 @@ if systemctl is-active --quiet "$SERVICE_NAME"; then
     echo -e "${GREEN}${BOLD}✓ Service is running!${NC}"
     echo ""
     echo -e "  Web UI:  ${BOLD}http://${IP}:${UI_PORT}${NC}"
+    echo -e "  Config:  $CONFIG_FILE"
     echo -e "  Logs:    journalctl -u $SERVICE_NAME -f"
     echo -e "  Status:  systemctl status $SERVICE_NAME"
 else

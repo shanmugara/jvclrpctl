@@ -1,8 +1,10 @@
-# Lumagen Web UI - Quick Start Guide
+# Lumagen + JVC Web UI — Quick Start
 
 ## What is This?
 
-A browser-based control interface for your Lumagen Radiance Pro video processor, running on your Raspberry Pi. Access it from any device on your network - phone, tablet, laptop!
+A browser-based control panel for your Lumagen Radiance Pro video processor (and JVC projector), running as a service on your Raspberry Pi. Works on phone, tablet, and desktop — no app required.
+
+---
 
 ## Quick Setup (5 minutes)
 
@@ -13,166 +15,204 @@ cd /path/to/jvclrpctl/lumagen_ui
 sudo ./install.sh
 ```
 
-### 2. Configure Serial Port
+The installer will ask for your install directory, venv path, serial port, and JVC IP.
 
-Find your Lumagen's serial port:
+### 2. Confirm Serial Port
+
+The Lumagen connects at **9600 baud** via USB serial. Find your port:
 ```bash
 ls -l /dev/ttyUSB*
 ```
 
-Edit `app.py` and set the port (around line 14):
-```python
-LUMAGEN_PORT = '/dev/ttyUSB1'  # Change this to your port
+Override the default (`/dev/ttyUSB0`) with an environment variable in the systemd service file:
+```ini
+Environment="LUMAGEN_PORT=/dev/ttyUSB1"
 ```
 
 ### 3. Start the Service
 
 ```bash
 sudo systemctl start lumagen-ui.service
+sudo systemctl enable lumagen-ui.service   # auto-start on boot
 ```
 
 ### 4. Open in Browser
 
-Find your Pi's IP address:
 ```bash
-hostname -I
+hostname -I   # find your Pi's IP
 ```
 
-Open your browser to: `http://YOUR_PI_IP:5001`
+Open: `http://YOUR_PI_IP:5001`
 
-Example: `http://192.168.1.100:5001`
+---
 
 ## Features at a Glance
 
-### Main Controls
-- **Power**: On/Standby
-- **Inputs**: Quick switch between sources (1-10)
-- **Memories**: Switch between A/B/C/D configurations
-- **Aspect Ratios**: 4:3, Letterbox, 16:9, 1.85, 2.35, NLS
+The Lumagen page is split into **six tabs** to keep things organised:
 
-### Advanced
-- **Output Resolution**: Set 480p, 720p, 1080p, 4K (24/60Hz), or Auto
-- **Zoom**: Zoom in/out controls
-- **Test Patterns**: Display calibration patterns
-- **Save**: Persist your settings
+| Tab | What you can do |
+|-----|-----------------|
+| **Control** | Power on/standby, select input 1–8, switch memory A–D, zoom, output resolution, start/stop HDR automation |
+| **Navigate** | D-pad (▲▼◀▶) with OK in the centre, MENU corner button, pill-shaped PREV/EXIT, OSD on/off, number pad 0–9 |
+| **Aspect** | Standard ratios (4:3 / LBOX / 16:9 / 1.85 / 2.35 / NLS), extended Pro (1.90 / 2.00 / 2.20 / 2.40), no-zoom variants, auto-aspect on/off/reset |
+| **Patterns** | Full test pattern library with IRE slider — Geometry, Calibration, Color. Exit Pattern button to dismiss |
+| **Status** | Live parsed status — source resolution/rate/HDR, output mode/format/colorspace/CMS/style, device info. Refresh manually or enable auto-refresh (every 5 s) |
+| **Settings** | Game mode, HDMI hotplug, sharpness, output format, CMS/Style (ZY530), PIP, deinterlacing, **Save to Flash** |
 
-### Status
-- Real-time status display
-- Current input and configuration info
-- Connection status indicator
+The JVC page is at `http://YOUR_PI_IP:5001/jvc` — power, HDMI input, and picture mode.
 
-## Keyboard Shortcuts
+---
 
-- `1-8`: Switch to input 1-8
-- `A, B, C, D`: Select memory A, B, C, or D
-- `+`: Zoom in
-- `-`: Zoom out
-- `Ctrl+S`: Save configuration
+## Keyboard Shortcuts (Lumagen page)
+
+| Key | Action |
+|-----|--------|
+| `1`–`8` | Switch to input 1–8 |
+| `A`–`D` | Select memory A, B, C, or D |
+| `+` / `=` | Zoom in |
+| `-` / `_` | Zoom out |
+| `Ctrl+S` | Save configuration to flash |
+| `Arrow keys` | Navigate OSD (up / down / left / right) |
+| `Enter` | OK / Accept in OSD |
+| `M` | Open Lumagen menu |
+
+---
 
 ## Common Tasks
 
+### Navigate the Lumagen On-Screen Menu
+
+1. Go to the **Navigate** tab
+2. Press **MENU** (corner button) to open the menu
+3. Use ▲▼◀▶ to move, **OK** to select
+4. Press **EXIT** to back out one level, or **PREV** to go back
+
+You can also use keyboard arrow keys, Enter, and M once the Navigate tab is open.
+
 ### Change Input Source
-1. Click the input button (e.g., "Input 1")
-2. Wait for confirmation
-3. Done!
 
-### Switch HDR Configuration
-1. Click "MEM C" (or your HDR memory)
-2. Lumagen will switch to HDR settings
-3. Click "💾 Save Configuration" to persist
+1. Go to **Control** tab
+2. Click the input button (e.g. **Input 1**)
+3. Done — no confirmation needed
 
-### Set Output Resolution
-1. Click desired resolution (e.g., "4K60")
-2. Or use "Auto" for automatic detection
-3. Save if you want to keep this setting
+### Switch Aspect Ratio
 
-### View Current Status
-1. Click "📊 Get Status"
-2. View detailed info in the status box
-3. See current input, resolution, and more
+1. Go to **Aspect** tab
+2. Click the ratio — standard, extended Pro, no-zoom, or auto-aspect controls
+
+### Run a Test Pattern
+
+1. Go to **Patterns** tab
+2. Adjust the **IRE slider** (0–100) to set white level
+3. Click any pattern button (Crosshatch, Contrast, Color Bars, etc.)
+4. Click **Exit Pattern** when done
+
+### Check What the Lumagen is Seeing
+
+1. Go to **Status** tab
+2. Click **Refresh** (or enable **Auto-refresh**)
+3. Source section shows: input, resolution, frame rate, HDR/SDR, aspect ratio, scan type
+4. Output section shows: output mode, resolution/rate, colorspace, CMS slot, style
+
+### Change CMS or Style
+
+1. Go to **Settings** tab → CMS / Style section
+2. Click the desired slot for each field (Mode, CMS-SDR, CMS-HDR, Style) — **K** means "keep current"
+3. Click **Apply CMS / Style**
+
+### Save Settings to Flash
+
+1. Go to **Settings** tab (scroll to bottom)
+2. Click **Save to Flash** — this persists all Lumagen settings across power cycles
+
+### Toggle Game Mode
+
+1. Go to **Settings** tab → Game Mode section
+2. Click **On** or **Off**
+
+---
 
 ## Troubleshooting
 
-### Can't access web UI
-- Check Pi is on: `ping YOUR_PI_IP`
-- Check service: `sudo systemctl status lumagen-ui.service`
-- Check firewall: `sudo ufw allow 5001/tcp`
-
-### Commands not working
-- Verify serial connection: `ls -l /dev/ttyUSB*`
-- Check logs: `sudo journalctl -u lumagen-ui.service -f`
-- Restart service: `sudo systemctl restart lumagen-ui.service`
-
-### Permission denied on serial port
-- Add user to dialout: `sudo usermod -a -G dialout $USER`
-- Log out and back in
-- Restart service
-
-## Service Management
-
-Start service:
+### Can't access the web UI
 ```bash
-sudo systemctl start lumagen-ui.service
+ping YOUR_PI_IP
+sudo systemctl status lumagen-ui.service
+sudo ufw allow 5001/tcp   # if firewall is enabled
 ```
 
-Stop service:
+### Commands not working / serial errors
 ```bash
-sudo systemctl stop lumagen-ui.service
-```
-
-Restart service:
-```bash
+ls -l /dev/ttyUSB*
+sudo journalctl -u lumagen-ui.service -f
 sudo systemctl restart lumagen-ui.service
 ```
 
-View logs:
+### Permission denied on serial port
 ```bash
-sudo journalctl -u lumagen-ui.service -f
+sudo usermod -a -G dialout $USER
+# log out and back in, then restart the service
 ```
 
-Enable auto-start on boot:
-```bash
-sudo systemctl enable lumagen-ui.service
+### Debug logging
+Edit `/etc/systemd/system/lumagen-ui.service`, uncomment:
+```ini
+Environment="DEBUG=true"
 ```
+Then: `sudo systemctl daemon-reload && sudo systemctl restart lumagen-ui.service`
+
+---
+
+## Service Management
+
+```bash
+sudo systemctl start   lumagen-ui.service
+sudo systemctl stop    lumagen-ui.service
+sudo systemctl restart lumagen-ui.service
+sudo systemctl status  lumagen-ui.service
+sudo journalctl -u lumagen-ui.service -f    # live logs
+```
+
+---
 
 ## Integration Notes
 
-This web UI runs **independently** from the main jvclrpctl automation:
+The web UI and the background HDR automation **share the same serial port**. A threading lock (`lumagen_lock`) ensures only one caller talks to the Lumagen at a time, so running both simultaneously is safe.
 
-- **Main jvclrpctl**: Automatic HDR/SDR detection and JVC switching
-- **Lumagen Web UI**: Manual control of Lumagen settings
+- **HDR automation** (Control tab): polls Lumagen every 30 s and auto-switches the JVC picture mode
+- **Manual controls** (all tabs): send commands on demand; automation pauses momentarily while the lock is held
 
-Both can run at the same time without conflicts (they use different serial ports).
+---
 
 ## Mobile Access
 
-The web UI is responsive and works great on mobile:
+The UI is designed for mobile — minimum 44 px touch targets, horizontally scrolling tab bar, responsive layout.
 
-1. Connect phone/tablet to same network as Pi
-2. Open browser
-3. Navigate to `http://YOUR_PI_IP:5001`
-4. Add to home screen for quick access
+1. Connect phone/tablet to the same network as the Pi
+2. Navigate to `http://YOUR_PI_IP:5001`
+3. Add to home screen (iOS: Share → Add to Home Screen)
+
+---
 
 ## Security Note
 
-The web UI has no authentication. It's designed for use on a trusted home network. If you need security:
+No authentication is built in — designed for a trusted home network. To restrict access, use firewall rules or a VPN.
 
-1. Use firewall rules to restrict access
-2. Consider setting up a VPN
-3. Or add authentication to Flask app
-
-## Getting Help
-
-- Check logs: `sudo journalctl -u lumagen-ui.service -f`
-- See full README: `lumagen_ui/README.md`
-- Verify Lumagen connection and baud rate (115200)
+---
 
 ## Uninstall
 
-To remove the service:
 ```bash
 cd /path/to/jvclrpctl/lumagen_ui
 sudo ./uninstall.sh
 ```
 
-This stops the service but keeps your files for reference.
+---
+
+## Getting Help
+
+```bash
+sudo journalctl -u lumagen-ui.service -f   # service logs
+```
+
+Full reference: `lumagen_ui/README.md`
