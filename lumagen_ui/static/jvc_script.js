@@ -1,5 +1,27 @@
 // JVC Projector Web UI
 
+// ── Power LED ─────────────────────────────────────────────────────────────────
+
+function _setJvcLed(state) {
+    const el = document.getElementById('jvc-power-led');
+    if (!el) return;
+    el.classList.remove('led-on', 'led-off');
+    if (state === 'on')  el.classList.add('led-on');
+    if (state === 'off') el.classList.add('led-off');
+}
+
+async function pollJvcPower() {
+    try {
+        const resp = await fetch('/api/jvc/status', { method: 'GET' });
+        if (!resp.ok) return;
+        const d = await resp.json();
+        if (d.success && d.power != null)
+            _setJvcLed(String(d.power).toLowerCase() === 'on' ? 'on' : 'off');
+    } catch (_) {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function confirmPower(action) {
     const label = action === 'on' ? 'Power ON' : 'Power OFF';
     if (!window.confirm(`${label} the JVC projector?`)) return;
@@ -49,7 +71,8 @@ async function callAPI(endpoint, method = 'POST') {
 
 async function jvcPower(action) {
     updateStatus(action === 'on' ? 'Powering On…' : 'Powering Off…', true);
-    await callAPI(`/api/jvc/power/${action}`);
+    const data = await callAPI(`/api/jvc/power/${action}`);
+    if (data) _setJvcLed(action === 'on' ? 'on' : 'off');
 }
 
 async function jvcInput(source) {
@@ -86,4 +109,8 @@ async function jvcStatus() {
     }
 }
 
-window.addEventListener('load', () => updateStatus('Ready', true));
+window.addEventListener('load', () => {
+    updateStatus('Ready', true);
+    pollJvcPower();
+    setInterval(pollJvcPower, 15000);
+});

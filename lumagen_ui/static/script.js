@@ -64,12 +64,32 @@ async function callAPI(endpoint, method = 'POST', body = null) {
     }
 }
 
+// ── Power LED ────────────────────────────────────────────────────────────────
+
+function _setLumagenLed(state) {
+    const el = document.getElementById('lumagen-power-led');
+    if (!el) return;
+    el.classList.remove('led-on', 'led-off');
+    if (state === 'on')  el.classList.add('led-on');
+    if (state === 'off') el.classList.add('led-off');
+}
+
+async function pollLumagenPower() {
+    try {
+        const resp = await fetch('/api/power/status', { method: 'POST' });
+        if (!resp.ok) return;
+        const d = await resp.json();
+        if (d.success) _setLumagenLed((d.status || '').includes(',1') ? 'on' : 'off');
+    } catch (_) {}
+}
+
 // ── Power ─────────────────────────────────────────────────────────────────────
 
-function confirmPowerControl(action) {
+async function confirmPowerControl(action) {
     const label = action === 'on' ? 'Power ON' : 'Standby';
     if (!confirm(`${label} the Lumagen Radiance?`)) return;
-    callAPI(`/api/power/${action}`);
+    const data = await callAPI(`/api/power/${action}`);
+    if (data) _setLumagenLed(action === 'on' ? 'on' : 'off');
 }
 
 // ── Input / Memory / Zoom / Output / Save ─────────────────────────────────────
@@ -357,4 +377,6 @@ window.addEventListener('load', () => {
     updateStatus('Ready', true);
     pollAutomationStatus();
     setInterval(pollAutomationStatus, 5000);
+    pollLumagenPower();
+    setInterval(pollLumagenPower, 15000);
 });
