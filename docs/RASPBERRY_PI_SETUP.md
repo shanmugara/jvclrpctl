@@ -275,7 +275,7 @@ sudo apt update && sudo apt upgrade -y
 **Update the project**
 ```bash
 cd ~/jvclrpctl
-git pull https://github.com/shanmugara/jvclrpctl.git
+git pull origin main
 ```
 Then restart the service:
 ```bash
