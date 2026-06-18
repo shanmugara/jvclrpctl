@@ -155,17 +155,13 @@
                             </button>
                             <button class="btn btn-nav-menu btn-corner-pill" onclick="navigate('menu')" title="Menu">MENU</button>
                         </div>
-                        <!-- D-pad with OK in centre -->
-                        <div class="dpad-grid">
-                            <div class="dpad-blank"></div>
-                            <button class="btn btn-nav" onclick="navigate('up')"    title="Up">▲</button>
-                            <div class="dpad-blank"></div>
-                            <button class="btn btn-nav" onclick="navigate('left')"  title="Left">◀</button>
-                            <button class="btn btn-nav btn-nav-ok" onclick="navigate('ok')" title="OK / Accept">OK</button>
-                            <button class="btn btn-nav" onclick="navigate('right')" title="Right">▶</button>
-                            <div class="dpad-blank"></div>
-                            <button class="btn btn-nav" onclick="navigate('down')"  title="Down">▼</button>
-                            <div class="dpad-blank"></div>
+                        <!-- Ring D-pad: arrow segments + OK circle -->
+                        <div class="dpad-ring">
+                            <button class="btn btn-nav btn-ring-up"    onclick="navigate('up')"    title="Up">▲</button>
+                            <button class="btn btn-nav btn-ring-left"   onclick="navigate('left')"  title="Left">◀</button>
+                            <button class="btn btn-nav btn-nav-ok btn-ring-ok" onclick="navigate('ok')" title="OK / Accept">OK</button>
+                            <button class="btn btn-nav btn-ring-right"  onclick="navigate('right')" title="Right">▶</button>
+                            <button class="btn btn-nav btn-ring-down"   onclick="navigate('down')"  title="Down">▼</button>
                         </div>
                         <!-- Prev and Exit as pill buttons -->
                         <div class="dpad-action-row">

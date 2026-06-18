@@ -625,19 +625,18 @@ header h1 {
   gap: 16px;
 }
 
-/* Corner row: Save (left, col-1 aligned) + Menu (right, col-3 aligned) */
+/* Corner row — same layout as dpad-action-row so Save/Menu align with PREV/EXIT */
 .dpad-corner-row {
-  width: calc(3 * 62px + 2 * 7px);   /* matches d-pad grid width */
-  max-width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 14px;
   margin-bottom: -6px;               /* pull it closer to the d-pad */
 }
 /* Corner-row pills — identical visual weight to .btn-pill (PREV/EXIT) */
 .btn-corner-pill {
   border-radius: 50px !important;
   padding: 10px 26px !important;
-  min-width: 0 !important;          /* let content size naturally; space-between handles alignment */
+  min-width: 100px;                  /* match btn-pill so columns align with PREV/EXIT */
   min-height: 44px;
   font-size: 12px !important;
   font-weight: 700;
@@ -655,14 +654,96 @@ header h1 {
 .btn-corner-pill:hover  { transform: translateY(-2px); filter: brightness(1.15); }
 .btn-corner-pill:active { transform: translateY(1px) scale(0.975); filter: brightness(0.88); }
 
-.dpad-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(54px, 62px));
-  grid-template-rows: repeat(3, minmax(54px, 62px));
-  gap: 7px;
-  justify-content: center;
+/* ── Ring D-pad ───────────────────────────────────── */
+.dpad-ring {
+  position: relative;
+  width: 208px;
+  height: 208px;
+  flex-shrink: 0;
 }
-.dpad-blank { /* empty cell placeholder */ }
+
+/* Decorative circular halo behind the ring */
+.dpad-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(79,195,247,0.13);
+  background: radial-gradient(ellipse at center, rgba(79,195,247,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Shared base for the 4 arrow ring buttons */
+.btn-ring-up, .btn-ring-down, .btn-ring-left, .btn-ring-right {
+  position: absolute;
+  z-index: 1;
+  min-height: unset;
+  padding: 0;
+}
+
+/* Up — outer (top) edge is the curved arc */
+.btn-ring-up {
+  width: 64px; height: 62px;
+  top: 4px;
+  left: 50%; transform: translateX(-50%);
+  border-radius: 50% 50% 10px 10px / 80% 80% 10px 10px !important;
+}
+.btn-ring-up::before    { border-radius: 50% 50% 10px 10px / 80% 80% 10px 10px; }
+
+/* Down — outer (bottom) edge is the curved arc */
+.btn-ring-down {
+  width: 64px; height: 62px;
+  bottom: 4px;
+  left: 50%; transform: translateX(-50%);
+  border-radius: 10px 10px 50% 50% / 10px 10px 80% 80% !important;
+}
+.btn-ring-down::before  { border-radius: 10px 10px 50% 50% / 10px 10px 80% 80%; }
+
+/* Left — outer (left) edge is the curved arc */
+.btn-ring-left {
+  width: 62px; height: 64px;
+  left: 4px;
+  top: 50%; transform: translateY(-50%);
+  border-radius: 80% 10px 10px 80% / 50% 10px 10px 50% !important;
+}
+.btn-ring-left::before  { border-radius: 80% 10px 10px 80% / 50% 10px 10px 50%; }
+
+/* Right — outer (right) edge is the curved arc */
+.btn-ring-right {
+  width: 62px; height: 64px;
+  right: 4px;
+  top: 50%; transform: translateY(-50%);
+  border-radius: 10px 80% 80% 10px / 10px 50% 50% 10px !important;
+}
+.btn-ring-right::before { border-radius: 10px 80% 80% 10px / 10px 50% 50% 10px; }
+
+/* OK — perfect circle, floats above the ring arrows */
+.btn-ring-ok {
+  position: absolute;
+  width: 72px !important;
+  height: 72px !important;
+  border-radius: 50% !important;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  min-height: unset;
+  padding: 0;
+}
+.btn-ring-ok::before    { border-radius: 50% !important; }
+
+/* Scoped under .dpad-ring for specificity (0,3,0) — beats .btn-nav:hover (0,2,0)
+   regardless of cascade order. Arrows use filter-only; no transform movement. */
+.dpad-ring .btn-ring-up:hover,
+.dpad-ring .btn-ring-down:hover    { transform: translateX(-50%);          filter: brightness(1.28) saturate(1.1); }
+.dpad-ring .btn-ring-left:hover,
+.dpad-ring .btn-ring-right:hover   { transform: translateY(-50%);          filter: brightness(1.28) saturate(1.1); }
+.dpad-ring .btn-ring-up:active,
+.dpad-ring .btn-ring-down:active   { transform: translateX(-50%);          filter: brightness(0.82); box-shadow: inset 0 3px 6px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.35); }
+.dpad-ring .btn-ring-left:active,
+.dpad-ring .btn-ring-right:active  { transform: translateY(-50%);          filter: brightness(0.82); box-shadow: inset 0 3px 6px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.35); }
+.dpad-ring .btn-ring-ok:hover      { transform: translate(-50%,-50%) scale(1.07); filter: brightness(1.22) saturate(1.1); }
+.dpad-ring .btn-ring-ok:active     { transform: translate(-50%,-50%) scale(0.93); filter: brightness(0.82); box-shadow: inset 0 3px 6px rgba(0,0,0,0.45); }
 
 .dpad-action-row {
   display: flex;
