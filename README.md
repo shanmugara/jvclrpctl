@@ -29,9 +29,19 @@ Python library for controlling JVC D-ILA projectors (TCP/IP) and Lumagen Radianc
 
 `lumagen_ui/` is a Flask app served by gunicorn that provides browser-based control of both devices in a single interface. See [lumagen_ui/README.md](lumagen_ui/README.md) for setup.
 
-![Lumagen Radiance Pro Web UI](web_ui.png)
+![Lumagen Radiance Pro Web UI - Control](lumagen_ui/control.png)
 
-![JVC NX Web UI](jvc_ui.png)
+![Lumagen Radiance Pro Web UI - Navigate](lumagen_ui/navigate.png)
+
+![Lumagen Radiance Pro Web UI - Aspect](lumagen_ui/aspect.png)
+
+![Lumagen Radiance Pro Web UI - Patterns](lumagen_ui/patterns.png)
+
+![Lumagen Radiance Pro Web UI - Status](lumagen_ui/status.png)
+
+![Lumagen Radiance Pro Web UI - Settings](lumagen_ui/settings.png)
+
+![JVC NX Web UI](lumagen_ui/jvc_ui.png)
 
 **Lumagen page** (`/`): power, input selection, configuration memory, aspect ratio, zoom, output resolution, test patterns, save config, status, HDR automation start/stop.
 
