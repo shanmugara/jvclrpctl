@@ -144,9 +144,16 @@
                 <div class="control-card span-2">
                     <h2>D-Pad</h2>
                     <div class="dpad-wrap">
-                        <!-- Menu button sits in the top-right corner above the d-pad -->
+                        <!-- Save (left, col-1) and Menu (right, col-3) pill buttons above the d-pad -->
                         <div class="dpad-corner-row">
-                            <button class="btn btn-nav-menu btn-corner" onclick="navigate('menu')" title="Menu">MENU</button>
+                            <button class="btn btn-save btn-corner-pill" onclick="saveConfig()" title="Save to flash">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/>
+                                </svg>
+                                Save
+                            </button>
+                            <button class="btn btn-nav-menu btn-corner-pill" onclick="navigate('menu')" title="Menu">MENU</button>
                         </div>
                         <!-- D-pad with OK in centre -->
                         <div class="dpad-grid">
