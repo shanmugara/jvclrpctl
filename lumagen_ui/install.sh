@@ -126,7 +126,7 @@ else
   "jvc_host": "$JVC_HOST",
   "jvc_port": 20554,
   "lumagen_port": "$LUMAGEN_PORT",
-  "poll_interval": 30,
+  "poll_interval": 2,
   "hdr_mode": "$PMODE_HDR",
   "sdr_mode": "$PMODE_SDR",
   "settle_time": 4,
