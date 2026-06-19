@@ -1201,6 +1201,179 @@ header h1 {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(56,189,248,0.38), 0 5px 14px rgba(0,0,0,0.45);
 }
 
+/* ── JVC Picture Buttons ──────────────────────────── */
+.btn-jvc-pic {
+  background-color: #1a0838;
+  border-color: #5b21b6;
+  color: #c4b5fd;
+  font-size: 12px;
+}
+.btn-jvc-pic:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(139,92,246,0.42), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+.btn-jvc-temp {
+  background-color: #1c1000;
+  border-color: #92400e;
+  color: #fcd34d;
+  font-size: 12px;
+}
+.btn-jvc-temp:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(245,158,11,0.42), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+.btn-jvc-gamma {
+  background-color: #002820;
+  border-color: #065f46;
+  color: #6ee7b7;
+  font-size: 12px;
+}
+.btn-jvc-gamma:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(16,185,129,0.42), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+.btn-jvc-motion {
+  background-color: #001020;
+  border-color: #0369a1;
+  color: #7dd3fc;
+  font-size: 12px;
+}
+.btn-jvc-motion:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(14,165,233,0.42), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+.btn-jvc-lamp {
+  background-color: #200000;
+  border-color: #9a3412;
+  color: #fdba74;
+  font-size: 12px;
+}
+.btn-jvc-lamp:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(249,115,22,0.42), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+.btn-jvc-setup {
+  background-color: #0f1c2e;
+  border-color: #1e4d7a;
+  color: #93c5fd;
+  font-size: 12px;
+}
+.btn-jvc-setup:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(59,130,246,0.38), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+.btn-jvc-warn {
+  background-color: #3b0000;
+  border-color: #b91c1c;
+  color: #fca5a5;
+  font-size: 12px;
+}
+.btn-jvc-warn:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(239,68,68,0.42), 0 5px 14px rgba(0,0,0,0.45);
+}
+
+/* ── Image Adjust Table ───────────────────────────── */
+.img-adj-table { display: flex; flex-direction: column; gap: 6px; }
+
+.img-adj-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 9px;
+}
+@media (max-width: 480px) {
+  .img-adj-row { grid-template-columns: 72px 1fr auto 1fr; gap: 5px; padding: 7px 8px; }
+}
+
+.img-adj-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.img-adj-btns { display: flex; gap: 5px; justify-content: flex-end; }
+.img-adj-btns:last-child { justify-content: flex-start; }
+
+.img-adj-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 36px;
+  text-align: center;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.btn-jvc-adj {
+  background-color: #101828;
+  border-color: #1d3a5c;
+  color: #7dd3fc;
+  padding: 8px 12px;
+  font-size: 13px;
+  min-height: 40px;
+}
+.btn-jvc-adj:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(56,189,248,0.38), 0 5px 12px rgba(0,0,0,0.45);
+}
+
+/* ── Lens Controls ────────────────────────────────── */
+.lens-pair {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-lens {
+  background-color: #101428;
+  border-color: #2a3a6e;
+  color: #a5b4fc;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 14px 18px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.btn-lens:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 16px rgba(99,102,241,0.42), 0 5px 16px rgba(0,0,0,0.45);
+}
+.btn-lens:active, .btn-lens.holding {
+  background-color: #1e2a5e;
+  border-color: #6366f1;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.5), 0 0 18px rgba(99,102,241,0.6);
+  filter: brightness(1.25);
+}
+
+.btn-shift {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  font-size: 18px;
+  border-radius: 12px;
+}
+
+.shift-pad {
+  display: grid;
+  grid-template-columns: 64px 64px 64px;
+  grid-template-rows: 64px 64px 64px;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+.shift-center {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: center;
+}
+
 /* ── Mobile adjustments ───────────────────────────── */
 @media (max-width: 480px) {
   .button-grid {

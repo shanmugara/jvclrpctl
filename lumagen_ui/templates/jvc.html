@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JVC D-ILA Projector</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
 </head>
 <body>
     <div class="container">
@@ -20,93 +20,567 @@
             </p>
         </header>
 
-        <!-- Status Bar -->
         <div class="status-bar">
             <div id="status-indicator" class="status-indicator"></div>
             <span id="status-text">Ready</span>
         </div>
 
-        <div class="dashboard-grid">
+        <!-- ── In-page tab navigation ── -->
+        <div class="lumagen-tabs">
+            <button class="lumagen-tab active" data-tab="control"  onclick="switchTab('control')">Control</button>
+            <button class="lumagen-tab"         data-tab="picture" onclick="switchTab('picture')">Picture</button>
+            <button class="lumagen-tab"         data-tab="image"   onclick="switchTab('image')">Image</button>
+            <button class="lumagen-tab"         data-tab="lens"    onclick="switchTab('lens')">Lens</button>
+            <button class="lumagen-tab"         data-tab="setup"   onclick="switchTab('setup')">Setup</button>
+            <button class="lumagen-tab"         data-tab="status"  onclick="switchTab('status')">Status</button>
+        </div>
 
-            <!-- Power -->
-            <div class="control-card span-2">
-                <div class="power-header-row">
-                    <h2>Power</h2>
-                    <span class="power-led" id="jvc-power-led" title="JVC power status"></span>
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 1 — CONTROL                                          -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-control" class="tab-panel active">
+            <div class="dashboard-grid">
+
+                <!-- Power -->
+                <div class="control-card span-2">
+                    <div class="power-header-row">
+                        <h2>Power</h2>
+                        <span class="power-led" id="jvc-power-led" title="JVC power status"></span>
+                    </div>
+                    <div class="power-section">
+                        <button class="btn btn-power btn-power-on" onclick="confirmPower('on')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
+                            </svg>
+                            ON
+                        </button>
+                        <button class="btn btn-power btn-power-off" onclick="confirmPower('off')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
+                            </svg>
+                            OFF
+                        </button>
+                    </div>
                 </div>
-                <div class="power-section">
-                    <button class="btn btn-power btn-power-on" onclick="confirmPower('on')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                            <line x1="12" y1="2" x2="12" y2="12"/>
-                        </svg>
-                        ON
-                    </button>
-                    <button class="btn btn-power btn-power-off" onclick="confirmPower('off')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
-                            <line x1="12" y1="2" x2="12" y2="12"/>
-                        </svg>
-                        OFF
-                    </button>
+
+                <!-- Input -->
+                <div class="control-card">
+                    <h2>Input</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-input" onclick="jvcInput('hdmi1')">HDMI 1</button>
+                        <button class="btn btn-input" onclick="jvcInput('hdmi2')">HDMI 2</button>
+                    </div>
                 </div>
+
+                <!-- Standard Picture Modes -->
+                <div class="control-card span-2">
+                    <h2>Picture Mode</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-picmode" onclick="jvcPictureMode('film')">Film</button>
+                        <button class="btn btn-picmode" onclick="jvcPictureMode('cinema')">Cinema</button>
+                        <button class="btn btn-picmode" onclick="jvcPictureMode('natural')">Natural</button>
+                        <button class="btn btn-picmode" onclick="jvcPictureMode('hdr')">HDR10</button>
+                        <button class="btn btn-picmode" onclick="jvcPictureMode('hlg')">HLG</button>
+                        <button class="btn btn-picmode" onclick="jvcPictureMode('frame_adapt_hdr')">Frame Adapt</button>
+                        <button class="btn btn-picmode" onclick="jvcPictureMode('thx')">THX</button>
+                    </div>
+                </div>
+
+                <!-- User Picture Modes -->
+                <div class="control-card">
+                    <h2>User Modes</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-picmode-user" onclick="jvcPictureMode('user1')">User 1</button>
+                        <button class="btn btn-picmode-user" onclick="jvcPictureMode('user2')">User 2</button>
+                        <button class="btn btn-picmode-user" onclick="jvcPictureMode('user3')">User 3</button>
+                        <button class="btn btn-picmode-user" onclick="jvcPictureMode('user4')">User 4</button>
+                        <button class="btn btn-picmode-user" onclick="jvcPictureMode('user5')">User 5</button>
+                        <button class="btn btn-picmode-user" onclick="jvcPictureMode('user6')">User 6</button>
+                    </div>
+                </div>
+
             </div>
+        </div>
 
-            <!-- Input -->
-            <div class="control-card">
-                <h2>Input</h2>
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 2 — PICTURE                                          -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-picture" class="tab-panel">
+
+            <!-- Color Profile -->
+            <div class="settings-block">
+                <h3>Color Profile</h3>
                 <div class="button-grid">
-                    <button class="btn btn-input" onclick="jvcInput('hdmi1')">HDMI 1</button>
-                    <button class="btn btn-input" onclick="jvcInput('hdmi2')">HDMI 2</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('03')">BT.709</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('0A')">HDR</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('0B')">BT.2020</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('04')">Cinema</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('01')">Film1</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('02')">Film2</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('08')">Video</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('21')">DCI</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('0E')">Custom1</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('0F')">Custom2</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('10')">Custom3</button>
+                    <button class="btn btn-jvc-pic" onclick="jvcColorProfile('00')">Off</button>
                 </div>
             </div>
 
-            <!-- Standard Picture Modes -->
-            <div class="control-card span-2">
-                <h2>Picture Mode</h2>
+            <!-- Color Temperature -->
+            <div class="settings-block">
+                <h3>Color Temperature</h3>
                 <div class="button-grid">
-                    <button class="btn btn-picmode" onclick="jvcPictureMode('film')">Film</button>
-                    <button class="btn btn-picmode" onclick="jvcPictureMode('cinema')">Cinema</button>
-                    <button class="btn btn-picmode" onclick="jvcPictureMode('natural')">Natural</button>
-                    <button class="btn btn-picmode" onclick="jvcPictureMode('hdr')">HDR</button>
-                    <button class="btn btn-picmode" onclick="jvcPictureMode('thx')">THX</button>
-                    <button class="btn btn-picmode" onclick="jvcPictureMode('hlg')">HLG</button>
-                    <button class="btn btn-picmode" onclick="jvcPictureMode('frame_adapt_hdr')">Frame Adapt</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('00')">5500K</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('02')">6500K</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('04')">7500K</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('08')">9300K</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('09')">Hi Bright</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('0A')">Custom1</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('0B')">Custom2</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('0C')">HDR10</button>
+                    <button class="btn btn-jvc-temp" onclick="jvcColorTemp('14')">HLG</button>
                 </div>
             </div>
 
-            <!-- User Picture Modes -->
-            <div class="control-card">
-                <h2>User Modes</h2>
+            <!-- Gamma Table -->
+            <div class="settings-block">
+                <h3>Gamma Table</h3>
                 <div class="button-grid">
-                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user1')">User 1</button>
-                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user2')">User 2</button>
-                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user3')">User 3</button>
-                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user4')">User 4</button>
-                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user5')">User 5</button>
-                    <button class="btn btn-picmode-user" onclick="jvcPictureMode('user6')">User 6</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('00')">2.2</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('08')">2.4</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('09')">2.6</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('01')">Cinema1</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('02')">Cinema2</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('0C')">HDR(PQ)</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('07')">HDR(HLG)</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('0A')">Film1</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('0B')">Film2</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('04')">Custom1</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('05')">Custom2</button>
+                    <button class="btn btn-jvc-gamma" onclick="jvcGamma('06')">Custom3</button>
                 </div>
             </div>
 
-            <!-- Status -->
-            <div class="control-card span-3">
-                <h2>Status Information</h2>
-                <div style="margin-bottom: 10px;">
-                    <button class="btn btn-info" onclick="jvcStatus()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        Get Status
-                    </button>
+            <!-- Lens Aperture + Motion row -->
+            <div class="dashboard-grid">
+
+                <div class="settings-block">
+                    <h3>Intelligent Lens Aperture</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-jvc-setup" onclick="jvcLensAperture('0')">Off</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcLensAperture('1')">Auto1</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcLensAperture('2')">Auto2</button>
+                    </div>
                 </div>
-                <div id="status-display" class="status-display">Click "Get Status" to query the projector</div>
+
+                <div class="settings-block">
+                    <h3>Clear Motion Drive</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-jvc-motion" onclick="jvcClearMotion('0')">Off</button>
+                        <button class="btn btn-jvc-motion" onclick="jvcClearMotion('3')">Low</button>
+                        <button class="btn btn-jvc-motion" onclick="jvcClearMotion('4')">High</button>
+                        <button class="btn btn-jvc-motion" onclick="jvcClearMotion('5')">Inv. Telecine</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>Motion Enhance</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-jvc-motion" onclick="jvcMotionEnhance('0')">Off</button>
+                        <button class="btn btn-jvc-motion" onclick="jvcMotionEnhance('1')">Low</button>
+                        <button class="btn btn-jvc-motion" onclick="jvcMotionEnhance('2')">High</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>Lamp Power</h3>
+                    <div class="settings-row">
+                        <button class="btn btn-jvc-lamp" onclick="jvcLampPower('0')">Normal</button>
+                        <button class="btn btn-jvc-lamp" onclick="jvcLampPower('1')">High</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>Low Latency</h3>
+                    <div class="settings-row">
+                        <button class="btn btn-jvc-setup" onclick="jvcLowLatency(0)">Off</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcLowLatency(1)">On</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>8K e-shift</h3>
+                    <div class="settings-row">
+                        <button class="btn btn-jvc-setup" onclick="jvc8kEshift(0)">Off</button>
+                        <button class="btn btn-jvc-setup" onclick="jvc8kEshift(1)">On</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>Auto Tone Mapping</h3>
+                    <div class="settings-row">
+                        <button class="btn btn-jvc-setup" onclick="jvcAutoToneMap(0)">Off</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcAutoToneMap(1)">On</button>
+                    </div>
+                </div>
+
             </div>
 
         </div>
-    </div>
 
-    <script src="{{ url_for('static', filename='jvc_script.js') }}?v=4"></script>
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 3 — IMAGE ADJUST                                     -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-image" class="tab-panel">
+
+            <div class="settings-block">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h3 style="margin-bottom:0">Image Adjustments</h3>
+                    <button class="btn btn-info" onclick="jvcSyncImage()" style="padding:7px 16px;font-size:12px;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                        </svg>
+                        Sync from Projector
+                    </button>
+                </div>
+
+                <div class="img-adj-table">
+                    <!-- Contrast -->
+                    <div class="img-adj-row" data-param="contrast">
+                        <span class="img-adj-label">Contrast</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('contrast',-5)">−5</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('contrast',-1)">−1</button>
+                        </div>
+                        <span class="img-adj-val" id="adj-contrast">?</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('contrast',1)">+1</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('contrast',5)">+5</button>
+                        </div>
+                    </div>
+                    <!-- Brightness -->
+                    <div class="img-adj-row" data-param="brightness">
+                        <span class="img-adj-label">Brightness</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('brightness',-5)">−5</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('brightness',-1)">−1</button>
+                        </div>
+                        <span class="img-adj-val" id="adj-brightness">?</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('brightness',1)">+1</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('brightness',5)">+5</button>
+                        </div>
+                    </div>
+                    <!-- Color -->
+                    <div class="img-adj-row" data-param="color">
+                        <span class="img-adj-label">Color</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('color',-5)">−5</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('color',-1)">−1</button>
+                        </div>
+                        <span class="img-adj-val" id="adj-color">?</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('color',1)">+1</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('color',5)">+5</button>
+                        </div>
+                    </div>
+                    <!-- Tint -->
+                    <div class="img-adj-row" data-param="tint">
+                        <span class="img-adj-label">Tint</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('tint',-5)">−5</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('tint',-1)">−1</button>
+                        </div>
+                        <span class="img-adj-val" id="adj-tint">?</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('tint',1)">+1</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('tint',5)">+5</button>
+                        </div>
+                    </div>
+                    <!-- NR -->
+                    <div class="img-adj-row" data-param="nr">
+                        <span class="img-adj-label">NR</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('nr',-5)">−5</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('nr',-1)">−1</button>
+                        </div>
+                        <span class="img-adj-val" id="adj-nr">?</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('nr',1)">+1</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('nr',5)">+5</button>
+                        </div>
+                    </div>
+                    <!-- Enhance -->
+                    <div class="img-adj-row" data-param="enhance">
+                        <span class="img-adj-label">Enhance</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('enhance',-5)">−5</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('enhance',-1)">−1</button>
+                        </div>
+                        <span class="img-adj-val" id="adj-enhance">?</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('enhance',1)">+1</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('enhance',5)">+5</button>
+                        </div>
+                    </div>
+                    <!-- Smooth -->
+                    <div class="img-adj-row" data-param="smooth">
+                        <span class="img-adj-label">Smooth</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('smooth',-5)">−5</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('smooth',-1)">−1</button>
+                        </div>
+                        <span class="img-adj-val" id="adj-smooth">?</span>
+                        <div class="img-adj-btns">
+                            <button class="btn btn-jvc-adj" onclick="imgStep('smooth',1)">+1</button>
+                            <button class="btn btn-jvc-adj" onclick="imgStep('smooth',5)">+5</button>
+                        </div>
+                    </div>
+                </div>
+                <p class="save-hint">Values shown are last known. Use "Sync from Projector" to read current values. Adjustments are absolute (range clamped per parameter).</p>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 4 — LENS                                             -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-lens" class="tab-panel">
+            <div class="dashboard-grid">
+
+                <!-- Focus -->
+                <div class="control-card">
+                    <h2>Focus</h2>
+                    <div class="lens-pair">
+                        <button class="btn btn-lens"
+                            onmousedown="lensStart('focus-near')" onmouseup="lensStop('focus-near')"
+                            onmouseleave="lensStop('focus-near')" ontouchstart="lensStart('focus-near')"
+                            ontouchend="lensStop('focus-near')" ontouchcancel="lensStop('focus-near')">
+                            ◀ Near
+                        </button>
+                        <button class="btn btn-lens"
+                            onmousedown="lensStart('focus-far')" onmouseup="lensStop('focus-far')"
+                            onmouseleave="lensStop('focus-far')" ontouchstart="lensStart('focus-far')"
+                            ontouchend="lensStop('focus-far')" ontouchcancel="lensStop('focus-far')">
+                            Far ▶
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Zoom -->
+                <div class="control-card">
+                    <h2>Zoom</h2>
+                    <div class="lens-pair">
+                        <button class="btn btn-lens"
+                            onmousedown="lensStart('zoom-wide')" onmouseup="lensStop('zoom-wide')"
+                            onmouseleave="lensStop('zoom-wide')" ontouchstart="lensStart('zoom-wide')"
+                            ontouchend="lensStop('zoom-wide')" ontouchcancel="lensStop('zoom-wide')">
+                            ◀ Wide
+                        </button>
+                        <button class="btn btn-lens"
+                            onmousedown="lensStart('zoom-tele')" onmouseup="lensStop('zoom-tele')"
+                            onmouseleave="lensStop('zoom-tele')" ontouchstart="lensStart('zoom-tele')"
+                            ontouchend="lensStop('zoom-tele')" ontouchcancel="lensStop('zoom-tele')">
+                            Tele ▶
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shift -->
+                <div class="control-card span-2">
+                    <h2>Lens Shift</h2>
+                    <div class="shift-pad">
+                        <div></div>
+                        <button class="btn btn-lens btn-shift"
+                            onmousedown="lensStart('shift-up')" onmouseup="lensStop('shift-up')"
+                            onmouseleave="lensStop('shift-up')" ontouchstart="lensStart('shift-up')"
+                            ontouchend="lensStop('shift-up')" ontouchcancel="lensStop('shift-up')">▲</button>
+                        <div></div>
+                        <button class="btn btn-lens btn-shift"
+                            onmousedown="lensStart('shift-left')" onmouseup="lensStop('shift-left')"
+                            onmouseleave="lensStop('shift-left')" ontouchstart="lensStart('shift-left')"
+                            ontouchend="lensStop('shift-left')" ontouchcancel="lensStop('shift-left')">◀</button>
+                        <div class="shift-center">SHIFT</div>
+                        <button class="btn btn-lens btn-shift"
+                            onmousedown="lensStart('shift-right')" onmouseup="lensStop('shift-right')"
+                            onmouseleave="lensStop('shift-right')" ontouchstart="lensStart('shift-right')"
+                            ontouchend="lensStop('shift-right')" ontouchcancel="lensStop('shift-right')">▶</button>
+                        <div></div>
+                        <button class="btn btn-lens btn-shift"
+                            onmousedown="lensStart('shift-down')" onmouseup="lensStop('shift-down')"
+                            onmouseleave="lensStop('shift-down')" ontouchstart="lensStart('shift-down')"
+                            ontouchend="lensStop('shift-down')" ontouchcancel="lensStop('shift-down')">▼</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Lens Lock -->
+                <div class="control-card">
+                    <h2>Lens Lock</h2>
+                    <div class="button-grid">
+                        <button class="btn btn-jvc-setup" onclick="jvcLensLock(0)">Unlock</button>
+                        <button class="btn btn-jvc-warn"  onclick="jvcLensLock(1)">Lock</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <p class="save-hint" style="margin-top:10px;padding:0 4px;">
+                Hold button to move lens. Release to stop. Only one axis can move at a time.
+            </p>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 5 — SETUP                                            -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-setup" class="tab-panel">
+
+            <!-- HDMI Input Level -->
+            <div class="settings-block">
+                <h3>HDMI Input Level</h3>
+                <div class="button-grid">
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiLevel('0')">Standard</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiLevel('1')">Enhanced</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiLevel('2')">Super White</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiLevel('3')">Auto</button>
+                </div>
+            </div>
+
+            <!-- HDMI Color Space -->
+            <div class="settings-block">
+                <h3>HDMI Color Space</h3>
+                <div class="button-grid">
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiColorspace('0')">Auto</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiColorspace('1')">YCbCr 4:4:4</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiColorspace('2')">YCbCr 4:2:2</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcHdmiColorspace('3')">RGB</button>
+                </div>
+            </div>
+
+            <!-- Aspect -->
+            <div class="settings-block">
+                <h3>Aspect Ratio</h3>
+                <div class="button-grid">
+                    <button class="btn btn-jvc-setup" onclick="jvcAspect('2')">Zoom</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcAspect('3')">Auto</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcAspect('4')">Native</button>
+                </div>
+            </div>
+
+            <!-- Anamorphic -->
+            <div class="settings-block">
+                <h3>Anamorphic</h3>
+                <div class="button-grid">
+                    <button class="btn btn-jvc-setup" onclick="jvcAnamorphic('0')">Off</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcAnamorphic('1')">A</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcAnamorphic('2')">B</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcAnamorphic('3')">C</button>
+                </div>
+            </div>
+
+            <!-- Installation Style -->
+            <div class="settings-block">
+                <h3>Installation Style</h3>
+                <div class="button-grid">
+                    <button class="btn btn-jvc-setup" onclick="jvcInstallStyle('0')">Front</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcInstallStyle('1')">Ceiling (F)</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcInstallStyle('2')">Rear</button>
+                    <button class="btn btn-jvc-setup" onclick="jvcInstallStyle('3')">Ceiling (R)</button>
+                </div>
+            </div>
+
+            <!-- Eco / Timer / Back Color row -->
+            <div class="dashboard-grid">
+
+                <div class="settings-block">
+                    <h3>Eco Mode</h3>
+                    <div class="settings-row">
+                        <button class="btn btn-jvc-setup" onclick="jvcEcoMode(0)">Off</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcEcoMode(1)">On</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>High Altitude</h3>
+                    <div class="settings-row">
+                        <button class="btn btn-jvc-setup" onclick="jvcHighAltitude(0)">Off</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcHighAltitude(1)">On</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>Off Timer</h3>
+                    <div class="button-grid">
+                        <button class="btn btn-jvc-setup" onclick="jvcOffTimer('0')">Off</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcOffTimer('1')">1 Hr</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcOffTimer('2')">2 Hr</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcOffTimer('3')">3 Hr</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcOffTimer('4')">4 Hr</button>
+                    </div>
+                </div>
+
+                <div class="settings-block">
+                    <h3>Background Color</h3>
+                    <div class="settings-row">
+                        <button class="btn btn-jvc-setup" onclick="jvcBackColor('0')">Blue</button>
+                        <button class="btn btn-jvc-setup" onclick="jvcBackColor('1')">Black</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TAB 6 — STATUS                                           -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div id="tab-status" class="tab-panel">
+
+            <div class="status-toolbar">
+                <button class="btn btn-info" onclick="jvcRefreshStatus()" style="padding:9px 20px;font-size:13px;">
+                    Refresh
+                </button>
+                <label class="status-auto-label">
+                    <input type="checkbox" id="jvc-auto-refresh" onchange="toggleJvcAutoRefresh(this.checked)">
+                    Auto-refresh (30s)
+                </label>
+            </div>
+
+            <div class="status-sections">
+
+                <div class="status-section">
+                    <div class="status-section-head">Projector State</div>
+                    <div class="status-rows">
+                        <div class="status-row"><span class="status-lbl">Power</span>        <span class="status-val" id="js-power">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Input</span>        <span class="status-val" id="js-input">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Picture Mode</span> <span class="status-val" id="js-pm">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Source Signal</span><span class="status-val" id="js-source">—</span></div>
+                        <div class="status-row"><span class="status-lbl">HDR Type</span>     <span class="status-val" id="js-hdr">—</span></div>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-section-head">Picture Settings</div>
+                    <div class="status-rows">
+                        <div class="status-row"><span class="status-lbl">Lens Aperture</span><span class="status-val" id="js-la">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Lamp Power</span>  <span class="status-val" id="js-lp">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Low Latency</span> <span class="status-val" id="js-ll">—</span></div>
+                        <div class="status-row"><span class="status-lbl">HDMI Level</span>  <span class="status-val" id="js-il">—</span></div>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-section-head">Device Info</div>
+                    <div class="status-rows">
+                        <div class="status-row"><span class="status-lbl">Model</span>           <span class="status-val" id="js-model">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Software</span>        <span class="status-val" id="js-sw">—</span></div>
+                        <div class="status-row"><span class="status-lbl">Lamp Hours</span>      <span class="status-val" id="js-lamp">—</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- end .container -->
+
+    <script src="{{ url_for('static', filename='jvc_script.js') }}?v=6"></script>
 </body>
 </html>

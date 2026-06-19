@@ -520,6 +520,263 @@ def jvc_status():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/api/jvc/full-status', methods=['GET'])
+@jvc_required
+def jvc_full_status():
+    try:
+        return jsonify({'success': True, **jvc.get_full_status()})
+    except Exception as e:
+        logger.error(f"JVC full status error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ── JVC Picture settings ──────────────────────────────────────────────────
+
+@app.route('/api/jvc/color-profile/<val>', methods=['POST'])
+@jvc_required
+def jvc_color_profile(val):
+    try:
+        jvc.set_color_profile(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/color-temp/<val>', methods=['POST'])
+@jvc_required
+def jvc_color_temp(val):
+    try:
+        jvc.set_color_temp(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/gamma/<val>', methods=['POST'])
+@jvc_required
+def jvc_gamma(val):
+    try:
+        jvc.set_gamma_table(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/lens-aperture/<val>', methods=['POST'])
+@jvc_required
+def jvc_lens_aperture(val):
+    try:
+        jvc.set_lens_aperture(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/low-latency/<int:state>', methods=['POST'])
+@jvc_required
+def jvc_low_latency(state):
+    try:
+        jvc.set_low_latency(bool(state))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/clear-motion/<val>', methods=['POST'])
+@jvc_required
+def jvc_clear_motion(val):
+    try:
+        jvc.set_clear_motion_drive(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/motion-enhance/<val>', methods=['POST'])
+@jvc_required
+def jvc_motion_enhance(val):
+    try:
+        jvc.set_motion_enhance(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/lamp-power/<val>', methods=['POST'])
+@jvc_required
+def jvc_lamp_power(val):
+    try:
+        jvc.set_lamp_power(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/8k-eshift/<int:state>', methods=['POST'])
+@jvc_required
+def jvc_8k_eshift(state):
+    try:
+        jvc.set_8k_eshift(bool(state))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/auto-tone-map/<int:state>', methods=['POST'])
+@jvc_required
+def jvc_auto_tone_map(state):
+    try:
+        jvc.set_auto_tone_mapping(bool(state))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ── JVC Image adjustments ─────────────────────────────────────────────────
+
+@app.route('/api/jvc/image-adjust', methods=['POST'])
+@jvc_required
+def jvc_image_adjust():
+    try:
+        data = request.get_json() or {}
+        param = str(data.get('param', ''))
+        val = int(data.get('val', 0))
+        jvc.adjust_image(param, val)
+        return jsonify({'success': True, 'param': param, 'val': val})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"JVC image adjust error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/image-values', methods=['GET'])
+@jvc_required
+def jvc_image_values():
+    try:
+        return jsonify({'success': True, 'values': jvc.get_all_image_values()})
+    except Exception as e:
+        logger.error(f"JVC image values error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ── JVC Lens control ──────────────────────────────────────────────────────
+
+@app.route('/api/jvc/lens/<action>/<int:start>', methods=['POST'])
+@jvc_required
+def jvc_lens(action, start):
+    try:
+        jvc.lens_move(action, bool(start))
+        return jsonify({'success': True})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"JVC lens error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/lens-lock/<int:state>', methods=['POST'])
+@jvc_required
+def jvc_lens_lock(state):
+    try:
+        jvc.set_lens_lock(bool(state))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ── JVC Setup ────────────────────────────────────────────────────────────
+
+@app.route('/api/jvc/hdmi-level/<val>', methods=['POST'])
+@jvc_required
+def jvc_hdmi_level(val):
+    try:
+        jvc.set_hdmi_level(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/hdmi-colorspace/<val>', methods=['POST'])
+@jvc_required
+def jvc_hdmi_colorspace(val):
+    try:
+        jvc.set_hdmi_colorspace(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/aspect/<val>', methods=['POST'])
+@jvc_required
+def jvc_aspect(val):
+    try:
+        jvc.set_aspect(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/anamorphic/<val>', methods=['POST'])
+@jvc_required
+def jvc_anamorphic(val):
+    try:
+        jvc.set_anamorphic(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/install-style/<val>', methods=['POST'])
+@jvc_required
+def jvc_install_style(val):
+    try:
+        jvc.set_install_style(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/high-altitude/<int:state>', methods=['POST'])
+@jvc_required
+def jvc_high_altitude(state):
+    try:
+        jvc.set_high_altitude(bool(state))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/eco-mode/<int:state>', methods=['POST'])
+@jvc_required
+def jvc_eco_mode(state):
+    try:
+        jvc.set_eco_mode(bool(state))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/off-timer/<val>', methods=['POST'])
+@jvc_required
+def jvc_off_timer(val):
+    try:
+        jvc.set_off_timer(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/jvc/back-color/<val>', methods=['POST'])
+@jvc_required
+def jvc_back_color(val):
+    try:
+        jvc.set_back_color(val)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  Navigation API
 # ══════════════════════════════════════════════════════════════════════════
