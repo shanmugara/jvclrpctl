@@ -1201,6 +1201,43 @@ header h1 {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 14px rgba(56,189,248,0.38), 0 5px 14px rgba(0,0,0,0.45);
 }
 
+/* ── Log Viewer ───────────────────────────────────── */
+.log-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.btn-log-clear {
+  background-color: #1a1020;
+  border-color: #4a2060;
+  color: #c084fc;
+}
+.btn-log-clear:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 0 12px rgba(192,132,252,0.38), 0 5px 12px rgba(0,0,0,0.45);
+}
+
+.log-viewer {
+  background: rgba(0,0,0,0.40);
+  border: 1px solid var(--card-border);
+  border-radius: 9px;
+  padding: 12px 14px;
+  font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: #7ecfa6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-y: auto;
+  max-height: 340px;
+  min-height: 120px;
+}
+.log-viewer::-webkit-scrollbar { width: 5px; }
+.log-viewer::-webkit-scrollbar-track { background: transparent; }
+.log-viewer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+
 /* ── JVC Picture Buttons ──────────────────────────── */
 .btn-jvc-pic {
   background-color: #1a0838;

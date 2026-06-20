@@ -1147,5 +1147,30 @@ def get_rich_status():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+# ══════════════════════════════════════════════════════════════════════════
+#  Log viewer API
+# ══════════════════════════════════════════════════════════════════════════
+
+LOG_FILE = '/var/log/jvclrpctl/jvclrpctl.log'
+
+
+@app.route('/api/logs', methods=['GET'])
+def get_logs():
+    try:
+        n = min(int(request.args.get('lines', 200)), 1000)
+    except (ValueError, TypeError):
+        n = 200
+    try:
+        with open(LOG_FILE, 'r', errors='replace') as f:
+            lines = f.readlines()
+        return jsonify({'success': True, 'lines': lines[-n:], 'path': LOG_FILE})
+    except FileNotFoundError:
+        return jsonify({'success': True, 'lines': [], 'path': LOG_FILE,
+                        'note': 'Log file not found'})
+    except Exception as e:
+        logger.error(f"Log read error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

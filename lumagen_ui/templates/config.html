@@ -100,8 +100,25 @@
             </div>
         </div>
 
+        <!-- Automation Log Viewer -->
+        <div class="settings-block">
+            <h3>Automation Log</h3>
+            <p class="cfg-file-hint">File: <code id="log-file-path">/var/log/jvclrpctl/jvclrpctl.log</code></p>
+
+            <div class="log-toolbar">
+                <button class="btn btn-cfg-apply" onclick="loadLogs()" style="padding:7px 18px;font-size:12px;">Refresh</button>
+                <label class="status-auto-label" style="margin-left:10px;">
+                    <input type="checkbox" id="log-auto-refresh" checked onchange="toggleLogAutoRefresh(this.checked)">
+                    Auto-refresh (10 s)
+                </label>
+                <button class="btn btn-log-clear" onclick="clearLogDisplay()" style="margin-left:auto;padding:7px 16px;font-size:12px;">Clear</button>
+            </div>
+
+            <pre id="log-viewer" class="log-viewer">Loading…</pre>
+        </div>
+
     </div><!-- end .container -->
 
-    <script src="{{ url_for('static', filename='config_script.js') }}?v=1"></script>
+    <script src="{{ url_for('static', filename='config_script.js') }}?v=2"></script>
 </body>
 </html>

@@ -122,9 +122,44 @@ async function applyAutomationConfig() {
     if (data) showToast('Configuration saved', 'success');
 }
 
+// ── Log viewer ────────────────────────────────────────────────────────────────
+
+let _logRefreshTimer = null;
+
+async function loadLogs() {
+    try {
+        const resp = await fetch('/api/logs?lines=200');
+        if (!resp.ok) return;
+        const d = await resp.json();
+        const el = document.getElementById('log-viewer');
+        if (!el) return;
+        if (!d.success) { el.textContent = `Error: ${d.error}`; return; }
+        if (!d.lines || d.lines.length === 0) {
+            el.textContent = d.note || 'No log entries.';
+            return;
+        }
+        el.textContent = d.lines.join('');
+        el.scrollTop = el.scrollHeight;
+        const pathEl = document.getElementById('log-file-path');
+        if (pathEl && d.path) pathEl.textContent = d.path;
+    } catch (_) {}
+}
+
+function toggleLogAutoRefresh(enabled) {
+    clearInterval(_logRefreshTimer);
+    if (enabled) _logRefreshTimer = setInterval(loadLogs, 10000);
+}
+
+function clearLogDisplay() {
+    const el = document.getElementById('log-viewer');
+    if (el) el.textContent = '';
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 window.addEventListener('load', () => {
     updateStatus('Ready', true);
     loadAutomationConfig();
+    loadLogs();
+    _logRefreshTimer = setInterval(loadLogs, 10000);
 });
