@@ -142,6 +142,11 @@ step "Serial port permissions"
 usermod -a -G dialout "$ACTUAL_USER"
 info "Added $ACTUAL_USER to dialout group (re-login required to take effect)"
 
+# ── TFT framebuffer access ────────────────────────────────────────────────
+step "TFT display permissions"
+usermod -a -G video "$ACTUAL_USER"
+info "Added $ACTUAL_USER to video group for /dev/fb1 access (re-login required)"
+
 # ── Python virtual environment ────────────────────────────────────────────
 step "Python virtual environment"
 if [ ! -d "$VENV" ]; then

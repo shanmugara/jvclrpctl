@@ -3,6 +3,9 @@
 # Required for Lumagen serial communication
 pyserial>=3.5
 
+# TFT LCD banner display (framebuffer rendering)
+Pillow>=9.0
+
 # Development dependencies (optional)
 # Uncomment below if you want to install development tools
 

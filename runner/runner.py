@@ -11,6 +11,7 @@ from jvclrpctl.jvcctl.picture_modes import PictureModeController
 from jvclrpctl import LumagenRadiance, LumagenCommands
 from jvclrpctl.lumagen.constants import LRPInputModes
 from jvclrpctl import DEBUG, info, debug, warn, error, raw
+from jvclrpctl.display import TFTBanner
 
 # Configuration
 PROJECTOR_IP = "192.168.100.240"  # Change to your projector's IP address
@@ -48,6 +49,7 @@ class JVC_LRP_Runner:
         # this object for serial access instead of creating its own LumagenRadiance,
         # so only one serial connection ever opens /dev/ttyUSB0.
         self._lumagen_control = lumagen_control
+        self._banner = TFTBanner()
 
     def connect_lumagen(self):
         """Connect to the Lumagen and initialize commands"""
@@ -229,11 +231,13 @@ class JVC_LRP_Runner:
                     debug("JVC picture mode matches for HDR input mode. No change needed.")
                     info("✓ HDR\n")
                     self.lumagen_input_mode = current_input_mode
+                    self._banner.show("HDR")
                     return
                 elif current_input_mode == LRPInputModes.SDR and current_jvc_mode == self.sdr_mode:
                     debug("JVC picture mode matches for SDR input mode. No change needed.")
                     info("✓ SDR\n")
                     self.lumagen_input_mode = current_input_mode
+                    self._banner.show("SDR")
                     return
             else:
                 _initial_run = False
@@ -246,6 +250,7 @@ class JVC_LRP_Runner:
                     self.set_jvc_picture_mode(self.hdr_mode, _initial_run)
                     debug("updating last known input mode to HDR")
                     self.lumagen_input_mode = current_input_mode
+                    self._banner.show("HDR")
                 except Exception as e:
                     error(f"Failed to set JVC picture mode to HDR: {e}")
             elif current_input_mode == LRPInputModes.SDR:
@@ -255,6 +260,7 @@ class JVC_LRP_Runner:
                     self.set_jvc_picture_mode(self.sdr_mode, _initial_run)
                     debug("updating last known input mode to SDR")
                     self.lumagen_input_mode = current_input_mode
+                    self._banner.show("SDR")
                 except Exception as e:
                     error(f"Failed to set JVC picture mode to SDR: {e}")
             else:
